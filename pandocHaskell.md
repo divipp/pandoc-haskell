@@ -1006,6 +1006,8 @@ Type synonyms may have 0 or more parameters:
 
     type Two a = (a, a)     -- 'Two Int' is equal to '(Int, Int)'
 
+The *arity* of the type synonym is the number of its parameters.
+
 Partial application of type synonyms is not allowed:
 
     type Tw = Two         -- *wrong*, use 'type Tw a = Two a'
