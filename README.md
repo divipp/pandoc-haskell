@@ -13,6 +13,8 @@ Run
 
 to generate `pandocHaskell.pdf`
 
+The pdf generated from the last tagged version of the tutorial can be found [here](http://people.inf.elte.hu/divip/pandocHaskell.pdf).
+
 # Contribution
 
 Pull requests are welcome.
