@@ -1,0 +1,39 @@
+digraph G {
+compound=true;
+node [style=plain, color=black]
+subgraph clusterPO {
+    label = "parseOptions"
+    cmd [label="getArgs", shape =box]
+}
+subgraph cluster0 {
+    label = "convertWithOpts"
+    subgraph cluster1 {
+        label = ":: PandocIO"
+            cmd -> Opt [ltail=clusterPO]
+            Opt -> sources -> Pandoc1 -> Pandoc2 -> Pandoc3 -> Pandoc4 -> output
+            Pandoc1 [label = ":: Pandoc"]
+            Pandoc2 [label = ":: Pandoc"]
+            Pandoc3 [label = ":: Pandoc"]
+            Pandoc4 [label = ":: Pandoc"]
+            Opt -> reader -> Pandoc1
+            Opt -> ReaderOptions -> Pandoc1
+            Opt -> metadata -> Pandoc2
+            Opt -> transforms -> Pandoc3
+            Opt -> filters -> Pandoc4
+            Opt -> writer -> output
+            Opt -> WriterOptions -> output
+            Opt -> template -> WriterOptions
+            Opt -> variables -> WriterOptions
+            {rank=same; Pandoc1; Pandoc2; Pandoc3; Pandoc4}
+        }
+    output -> log [ltail=cluster1];
+    }
+Opt [label="opts :: Opt"]
+ReaderOptions [label=":: ReaderOptions"]
+WriterOptions [label=":: WriterOptions"]
+log [label=":: [LogMessage]"]
+options -> cmd [lhead=clusterPO]
+defaultOpts -> cmd [lhead=clusterPO]
+output [label="outputFile"]
+}
+

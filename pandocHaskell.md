@@ -3692,3 +3692,31 @@ This "filter" can be used with pandoc like this:
 ``` {.bash}
 > pandoc --filter ./capitalize.hs
 ```
+
+# Main architecture
+
+![`Text.Pandoc.App`](App.pdf)
+
+TODO
+
+`PandocIO`
+
+-   `PandocError`, `ExpectT`, `MonadError`
+-   `runIO`, `runIOorExplode`, `liftIOError`
+-   `CommonState`, `StateT`
+-   `class PandocMonad`
+    -   `CommonState`
+        -   `LogMessage`, `Verbosity`
+        -   `MediaBag`
+        -   `Lang`, `Translations`, -- `Term`, `parseBCP47`
+    -   `LogMessage`
+    -   `MimeType`
+    -   `StdGen`
+    -   `UTCTime`, `TimeZone`, -- `ZonedTime`
+    -   `ByteString`
+    -   `PandocPure`
+        -   `PureState`
+            -   `FileTree`
+            -   `Archive`
+            -   `Word8`
+-   `instance PandocMonad PandocIO`
