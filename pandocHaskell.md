@@ -308,13 +308,13 @@ speak about Haskell programs.
 ### Organization of Haskell source code
 
 Haskell module:
-:   text file with extension `.hs` (or `.lhs`)
+:   Group of Haskell definitions which are stored in a text file like `Example.hs`
 
 Haskell library:
 :   Haskell modules in hierarchical file structure
 
 Haskell program (or executable):
-:   Haskell modules with a dedicated top-level Haskell module
+:   Haskell modules with a main module
 
 Haskell package:
 :   Haskell library and/or a set of Haskell executables
