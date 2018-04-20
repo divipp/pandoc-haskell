@@ -308,7 +308,8 @@ speak about Haskell programs.
 ### Organization of Haskell source code
 
 Haskell module:
-:   Group of Haskell definitions which are stored in a text file like `Example.hs`
+:   Group of Haskell definitions which are stored in a text file like
+    `Example.hs`
 
 Haskell library:
 :   Haskell modules in hierarchical file structure
@@ -320,6 +321,8 @@ Haskell package:
 :   Haskell library and/or a set of Haskell executables
 
 ### Phases of execution of Haskell programs
+
+Knowing phases of execution helps to understand error messages.
 
 1.  *lexical analysis*
     -   recognize the beginning and end of "words" and punctuation
@@ -411,17 +414,35 @@ Interface file:
 
 ### Layout
 
-Indentation of code lines matters after keywords `where`, `of` and `do`.
+Layout of Haskell code matters:
+
+    f x
+    = x         -- *wrong*
+
+<!-- -->
+    f x
+     = x        -- *right*
+
+Only the *indentation* of code lines matters, other whitespace does not
+matter.
 
 Example:
 
-    f x = y  where   -- 'where' starts a new block
+    module Main where   -- 'where' starts a new block
+    f x = y  where      -- 'where' starts another block
+        y = z
+        z =
+            x
+    w = f 4
 
-        y = z        -- the first token of the block determines the indentation of the block
+This is the same as:
 
-        z =          -- same indentation  =>  new construct in the block
-            x        -- more indentation  =>  continue previous construct
-    w = f 4          -- less indentation  =>  end of the block
+    module Main where {
+    f x = y  where { y = z; z = x; };
+    w = f 4;
+    }
+
+Keywords which start a new block: `where`, `of` and `do`.
 
 ### Literals
 
