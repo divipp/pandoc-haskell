@@ -302,104 +302,6 @@ This section is a revision of the required Haskell knowledge rather than
 a full-blown Haskell introduction. Skim through this section to note in
 which areas need you more preparation for the rest of the tutorial.
 
-## What is a Haskell program?
-
-This subsection contains the essential vocabulary which is needed to
-speak about Haskell programs.
-
-### Organization of Haskell source code
-
-Haskell module:
-:   Group of Haskell definitions which are stored in a text file like
-    `Example.hs`
-
-Haskell library:
-:   Haskell modules in hierarchical file structure
-
-Haskell program (or executable):
-:   Haskell modules with a main module
-
-Haskell package:
-:   Haskell library and/or a set of Haskell executables
-
-### Phases of execution of Haskell programs
-
-Knowing phases of execution helps to understand error messages.
-
-1.  *lexical analysis*
-    -   recognize the beginning and end of "words" and punctuation
-        (these are called *tokens*)
-    -   recognize layout (whitespace matters in Haskell)
-    -   skip whitespace and comments
-2.  *parsing*
-    -   recognize language constructs
-3.  loading imports
-    -   do phases 1-8 for imported modules
-4.  *scope checking*
-    -   determine the defining location of each identifier
-5.  reordering
-    -   recognize hidden parentheses
-    -   connect function declaration with function definition (can be
-        apart)
-6.  *type inference*
-    -   check validity of expressions and declarations
-        -   solve constraints
-7.  *optimization*
-    -   transform definitions to make execution more time/space
-        efficient
-8.  *code generation*
-    -   transform definitions to machine code (maybe for an abstract
-        machine)
-9.  *linking*
-    -   compose code with code generated for imported modules
-    -   compose code with RTS (*Runtime System*: code for builtin
-        definitions, garbage collection, scheduling and profiling)
-10. *execution* (called *runtime* when used as an adjective)
-    -   execute the linked code
-
-Phases 1-9 are called *compilation* (or *compilation time* when used as
-an adjective).
-
-Compilation is done by the compiler, execution is done by the operating
-system.
-
-### Possible programmer errors
-
-Haskell programmers may cause the following kind of errors:
-
-Compile time / static error:
-:   error recognized during phases 1-6 by the compiler\
-    (all compile time errors are caught until the end of type checking)
-
-Runtime error:
-:   error during execution, recognized by the runtime system\
-    (all errors are caught by the runtime system and not by the
-    operating system)
-
-Semantic error:
-:   error during execution which is not recognized by the runtime
-    system\
-    (may be recognized by testing)
-
-Performance issue:
-:   runtime resource usage is not acceptable / not reasonable\
-    (may be recognized by profiling and benchmarks)
-
-### Cached results
-
-Recompilation of modules can be avoided by caching the results of the
-compilation phases.
-
-Executable file:
-:   cached result of linking
-
-Object file:
-:   cached result of code generation, needed for linking
-
-Interface file:
-:   cached result of type checking, needed in phases 3-7 for modules
-    importing this one
-
 ## Lexical structure of Haskell modules
 
 ### Comments
@@ -813,6 +715,195 @@ Multiple constraints:
     (Num a, Show a) => a -> a     -- same as  (Show a, Num a) => a -> a
     (Eq a, Ord a) => b            -- same as  Ord a => b, because  Eq a => Ord a
 
+## Declarations
+
+### Function definition
+
+    double x = 2 * x        -- one argument
+
+<!-- -->
+    add3 x y z = x + y + z  -- 3 arguments
+
+#### Operator definition
+
+    a *+ b = a * b + b          -- same as   (*+) a b = a * b + b
+
+<!-- -->
+    (f . g) x = f (g x)         -- same as   (.) f g x = f (g x)
+
+<!-- -->
+    a `diff` b = abs (a - b)    -- same as   diff a b = abs (a - b)
+
+#### Function alternatives
+
+    not True  = False    -- 1st alternative
+    not False = True     -- 2nd alternative
+
+<!-- -->
+#### Guards
+
+    min x y
+        | x <= y    =  x
+        | otherwise =  y        -- otherwise = True
+
+#### Where block
+
+    f . g = h
+      where
+        h x = f (g x)
+
+#### Recursive function
+
+    nub [] = []
+    nub (x: xs) = x: nub [a | a <- xs, a /= x]
+
+Mutual recursion:
+
+    evenLength [] = True
+    evenLength (_: xs) = oddLength xs
+
+    oddLength [] = False
+    oddLength (_: xs) = evenLength xs
+
+### Constant definition
+
+    c = 1 + 4
+
+<!-- -->
+    [one, two, three, four, five] = [1..5]    -- five constants defined
+
+Constant definition used in a where block:
+
+    distribute []      = ([], [])
+    distribute (x: xs) = (x: odds, evens)
+      where
+        (evens, odds) = distribute xs          -- defines evens and odds
+
+#### Recursive constant
+
+    cycle xs = ys
+      where
+        ys = xs ++ ys       -- recursive constant
+
+Mutual recursion:
+
+    falseTrue = False: trueFalse
+    trueFalse = True:  falseTrue
+
+#### Ad-hoc polymorph constant
+
+    one :: Num a => a
+    one = 1
+
+### Type annotation
+
+    one :: Int          -- variable(s) :: type
+
+<!-- -->
+    two, three :: Int   -- same as 'two :: Int' and 'three :: Int'
+
+Each type annotation should have a corresponding definition.
+
+# Haskell Basics (2)
+
+## What is a Haskell program?
+
+This subsection contains the essential vocabulary which is needed to
+speak about Haskell programs.
+
+### Organization of Haskell source code
+
+Haskell module:
+:   Group of Haskell definitions which are stored in a text file like
+    `Example.hs`
+
+Haskell library:
+:   Haskell modules in hierarchical file structure
+
+Haskell program (or executable):
+:   Haskell modules with a main module
+
+Haskell package:
+:   Haskell library and/or a set of Haskell executables
+
+### Phases of execution of Haskell programs
+
+Knowing phases of execution helps to understand error messages.
+
+1.  *lexical analysis*
+    -   recognize the beginning and end of "words" and punctuation
+        (these are called *tokens*)
+    -   recognize layout (whitespace matters in Haskell)
+    -   skip whitespace and comments
+2.  *parsing*
+    -   recognize language constructs
+3.  loading imports
+    -   do phases 1-8 for imported modules
+4.  *scope checking*
+    -   determine the defining location of each identifier
+5.  reordering
+    -   recognize hidden parentheses
+    -   connect function declaration with function definition (can be
+        apart)
+6.  *type inference*
+    -   check validity of expressions and declarations
+        -   solve constraints
+7.  *optimization*
+    -   transform definitions to make execution more time/space
+        efficient
+8.  *code generation*
+    -   transform definitions to machine code (maybe for an abstract
+        machine)
+9.  *linking*
+    -   compose code with code generated for imported modules
+    -   compose code with RTS (*Runtime System*: code for builtin
+        definitions, garbage collection, scheduling and profiling)
+10. *execution* (called *runtime* when used as an adjective)
+    -   execute the linked code
+
+Phases 1-9 are called *compilation* (or *compilation time* when used as
+an adjective).
+
+Compilation is done by the compiler, execution is done by the operating
+system.
+
+### Possible programmer errors
+
+Haskell programmers may cause the following kind of errors:
+
+Compile time / static error:
+:   error recognized during phases 1-6 by the compiler\
+    (all compile time errors are caught until the end of type checking)
+
+Runtime error:
+:   error during execution, recognized by the runtime system\
+    (all errors are caught by the runtime system and not by the
+    operating system)
+
+Semantic error:
+:   error during execution which is not recognized by the runtime
+    system\
+    (may be recognized by testing)
+
+Performance issue:
+:   runtime resource usage is not acceptable / not reasonable\
+    (may be recognized by profiling and benchmarks)
+
+### Cached results
+
+Recompilation of modules can be avoided by caching the results of the
+compilation phases.
+
+Executable file:
+:   cached result of linking
+
+Object file:
+:   cached result of code generation, needed for linking
+
+Interface file:
+:   cached result of type checking, needed in phases 3-7 for modules
+    importing this one
+
 ## Kinds
 
 Kinds are the types of type expressions.
@@ -913,94 +1004,7 @@ Kinds which are beyond the scope of this tutorial:
         > :k (->)
         (->) :: TYPE q -> TYPE r -> *
 
-## Declarations
-
-### Function definition
-
-    double x = 2 * x        -- one argument
-
-<!-- -->
-    add3 x y z = x + y + z  -- 3 arguments
-
-#### Operator definition
-
-    a *+ b = a * b + b          -- same as   (*+) a b = a * b + b
-
-<!-- -->
-    (f . g) x = f (g x)         -- same as   (.) f g x = f (g x)
-
-<!-- -->
-    a `diff` b = abs (a - b)    -- same as   diff a b = abs (a - b)
-
-#### Function alternatives
-
-    not True  = False    -- 1st alternative
-    not False = True     -- 2nd alternative
-
-<!-- -->
-#### Guards
-
-    min x y
-        | x <= y    =  x
-        | otherwise =  y        -- otherwise = True
-
-#### Where block
-
-    f . g = h
-      where
-        h x = f (g x)
-
-#### Recursive function
-
-    nub [] = []
-    nub (x: xs) = x: nub [a | a <- xs, a /= x]
-
-Mutual recursion:
-
-    evenLength [] = True
-    evenLength (_: xs) = oddLength xs
-
-    oddLength [] = False
-    oddLength (_: xs) = evenLength xs
-
-### Constant definition
-
-    c = 1 + 4
-
-<!-- -->
-    [one, two, three, four, five] = [1..5]    -- five constants defined
-
-Constant definition used in a where block:
-
-    distribute []      = ([], [])
-    distribute (x: xs) = (x: odds, evens)
-      where
-        (evens, odds) = distribute xs          -- defines evens and odds
-
-#### Recursive constant
-
-    cycle xs = ys
-      where
-        ys = xs ++ ys       -- recursive constant
-
-Mutual recursion:
-
-    falseTrue = False: trueFalse
-    trueFalse = True:  falseTrue
-
-#### Ad-hoc polymorph constant
-
-    one :: Num a => a
-    one = 1
-
-### Type annotation
-
-    one :: Int          -- variable(s) :: type
-
-<!-- -->
-    two, three :: Int   -- same as 'two :: Int' and 'three :: Int'
-
-Each type annotation should have a corresponding definition.
+## Declarations (2)
 
 ### Fixity declaration
 
