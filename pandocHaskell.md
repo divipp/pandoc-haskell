@@ -1181,25 +1181,8 @@ or packed together:
 
     {-# LANGUAGE CPP, PatternGuards #-}
 
-The following language extensions are used by Pandoc. They are discussed
-separately in different sections of the tutorial.
-
--   preprocessing: `CPP`
--   imports: `NoImplicitPrelude`
--   syntactic sugars
-    -   expression related: `TupleSections`, `MultiWayIf`, `LambdaCase`
-    -   pattern related: `PatternGuards`, `ViewPatterns`
-    -   both for expressions and patterns: `OverloadedStrings`
--   type class extensions
-    -   classes: `MultiParamTypeClasses`
-    -   instances: `FlexibleInstances`, `TypeSynonymInstances`,
-        `IncoherentInstances`, `UndecidableInstances`
-        -   deriving: `GeneralizedNewtypeDeriving`,
-            `DeriveDataTypeable`, `DeriveGeneric`
-    -   contexts: `FlexibleContexts`
--   types: `ExplicitForAll`, `ScopedTypeVariables`, `RelaxedPolyRec`
--   type declaration: `GADTs`
--   other: `TemplateHaskell`
+The language extensions used by Pandoc are discussed at [Haskell
+language extensions](#haskell-language-extensions).
 
 ### Module header
 
@@ -1311,6 +1294,50 @@ Examples:
 
 <!-- -->
     import qualified Prelude as P hiding (id)
+
+## Haskell language extensions
+
+The following language extensions are used by Pandoc:
+
+-   preprocessing: `CPP`
+-   imports: `NoImplicitPrelude`
+-   syntactic sugars
+    -   expression related: `TupleSections`, `MultiWayIf`, `LambdaCase`
+    -   pattern related: `PatternGuards`, `ViewPatterns`
+    -   both for expressions and patterns: `OverloadedStrings`
+-   type class extensions
+    -   classes: `MultiParamTypeClasses`
+    -   instances: `FlexibleInstances`, `TypeSynonymInstances`,
+        `IncoherentInstances`, `UndecidableInstances`
+        -   deriving: `GeneralizedNewtypeDeriving`,
+            `DeriveDataTypeable`, `DeriveGeneric`
+    -   contexts: `FlexibleContexts`
+-   types: `ExplicitForAll`, `ScopedTypeVariables`, `RelaxedPolyRec`
+-   type declaration: `GADTs`
+-   other: `TemplateHaskell`
+
+### `ViewPatterns`
+
+View patterns allows to apply a function *before* pattern matching.
+
+Example:
+
+    initLast xs = (init xs, last xs)
+
+    reverse (initLast -> (xs, x)) = x: reverse xs
+
+Example:
+
+    greet (words -> ["My","name","is",x]) = "Hello " ++ x
+    greet (words -> ["I","am",x]) = "Hi " ++ x
+    greet xs = "I don't understand " ++ show xs
+
+is the same as
+
+    greet xs = case words xs of
+        ["My","name","is",x] -> "Hello " ++ x
+        ["I","am",x] -> "Hi " ++ x
+        _ -> "I don't understand " ++ show xs
 
 ## The Haskell Prelude
 
@@ -3078,6 +3105,31 @@ Useful functions:
 <!-- -->
     execState :: State s a -> s -> s        -- only the final state is needed
     execState m s = snd $ runState m s
+
+#### Implementation of `State`
+
+    {-# language ViewPatterns #-}
+
+    newtype State s a = State {runState :: s -> (a, s)}
+
+    state :: (s -> (a, s)) -> State s a
+    state = State
+
+    instance Functor (State s) where
+        -- fmap :: (a -> b) -> State s a -> State s b
+        fmap f (State g) = State $ \(g -> (a, s)) -> (f a, s)
+
+    instance Applicative (State s) where
+        pure a = State $ \s -> (a, s)
+
+        -- (<*>) :: State s (a -> b) -> State s a -> State s b
+        State sf <*> State sa = State $ \(sf -> (f, sa -> (a, s))) -> (f a, s)
+
+    instance Monad (State s) where
+        return = pure
+
+        -- (>>=) :: State s a -> (a -> State s b) -> State s b
+        State f >>= g = State $ \(f -> (a, s)) -> runState (g a) s
 
 ### `do` notation
 
