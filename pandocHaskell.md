@@ -1833,11 +1833,13 @@ Functions
     class   (Real a, Fractional a) =>  RealFrac a
     class (RealFrac a, Floating a) =>  RealFloat a
 
-# Monoids
+# Intermediate-level Haskell
+
+## Monoids
 
 TODO
 
-## `Sum` monoid
+### `Sum` monoid
 
 [`Data.Monoid`](https://hackage.haskell.org/package/base/docs/Data-Monoid.html)
 defines:
@@ -1998,9 +2000,7 @@ Cons (compared to `Data.ByteString`):
 
 -   some operations may be slower
 
-## `Monoid` type class
-
-# Containers
+## Containers
 
     Set a       ~      a -> Bool
     Map a b     ~      a -> Maybe b
@@ -2008,7 +2008,7 @@ Cons (compared to `Data.ByteString`):
 
 <https://hackage.haskell.org/package/containers>
 
-## `Set`
+### `Set`
 
 Semantics:
 
@@ -2129,7 +2129,7 @@ Usage examples:
                        "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
                        "ch.", "sec.", "cf.", "cp."]
 
-## `Map`
+### `Map`
 
         Map.fromList [('a', 1), ('a', 2)]  ==  Map.fromList [('a', 2)]
         Map.fromList [('a', 1), ('b', 1)]  /=  Map.fromList [('b', 1)]
@@ -2222,7 +2222,7 @@ Usage examples:
     Data.Map   -->   Data.Map.Lazy
     Data.Map.Strict     -- not used in Pandoc
 
-## `Seq`
+### `Seq`
 
     module Data.Sequence
 
@@ -2429,7 +2429,7 @@ Example usage:
     Prelude Text.Pandoc.Builder> str "hello world!"
     Many {unMany = fromList [Str "hello world!"]}
 
-## `Foldable`
+### `Foldable` type class
 
 The essence of the `Foldable` class:
 
@@ -2545,7 +2545,7 @@ Help to understand how it works:
      == (1+) ((2+) ((3+) 0))
      == 6
 
-## `Functor`
+### `Functor` type class
 
 `Functor` could be called `Mappable` because it is a generalization of
 `map` and similar functions:
@@ -2607,10 +2607,6 @@ Use examples:
     2True
 
 Pandoc use examples: a lot, TODO
-
-# Type classes
-
-TODO: move this section
 
 ## Custom classes
 
@@ -2691,9 +2687,9 @@ restricted types:
 Usage examples: in the haddock documentation of `Text.Pandoc.Builder`.
 <link>
 
-# Computations
+## `IO` actions
 
-## The `IO` type constructor
+### The `IO` type constructor
 
 `IO` is a built-in type constructor:
 
@@ -2742,7 +2738,7 @@ Examples of actions constructed from smaller actions:
 
 You may noticed that there is `instance Functor IO`.
 
-## Performing actions
+### Performing actions
 
 Actions i.e. codes of interactive computations can be run in two ways:
 
@@ -2803,7 +2799,7 @@ Haskell an impure language:
 
         s' = [unsafePerformIO getChar, unsafePerformIO getChar]
 
-## Basic combinators
+### Basic combinators
 
 There are elementary actions and a set of basic combinators with which a
 wide range of actions can be constructed.
@@ -2866,7 +2862,7 @@ defined as:
     (>>=) :: IO a -> (a -> IO b) -> IO b
     ia >>= f = join (f <$> ia)
 
-## `do` notation
+### `do` notation
 
 `do` notation is a syntactic sugar to combine actions.\
 `do` notation is desugared to `(>>)` and `(>>=)` calls.
@@ -2918,9 +2914,9 @@ Example 3:
                 getLine >>= \cs ->
                 return (c: cs)
 
-# Generalizations of `IO` combinators
+## Generalizations of `IO` combinators
 
-## Random value generation
+### Random value generation
 
 `Gen` is a type constructor:
 
@@ -2966,7 +2962,7 @@ Examples of generators constructed from smaller generators:
 
 You may noticed that there is `instance Functor Gen`.
 
-### Performing random generation
+#### Performing random generation
 
 We can generate one random value with generate:
 
@@ -3012,7 +3008,7 @@ Example usage:
     " *      *  *** * ***"
     "***    **** * * ** *"
 
-### Basic combinators
+#### Basic combinators
 
 There are elementary generators and a set of basic combinators with
 which any other generators can be constructed.
@@ -3223,9 +3219,7 @@ Usage example:
 <!-- -->
     optional :: Alternative f => f a -> f (Maybe a)
 
-# Testing
-
-## `QuickCheck`
+## Testing with `QuickCheck`
 
 ### Quickly check properties
 
@@ -3433,7 +3427,7 @@ Pandoc uses `resize`, which is the same as `scale` with a constant size:
     resize :: Int -> Gen a -> Gen a 
     resize n = scale (const n)
 
-# JSON conversion
+## JSON conversion
 
 ``` {.bash}
 $ echo 'Hello *World*!' | pandoc --to json
@@ -3530,7 +3524,7 @@ JSON conversion API:
 
     (.:) :: FromJSON a => Object -> Text -> Parser a   -- imported from Data.Aeson
 
-# Running tests
+## Running tests
 
     -- pandoc-types/test/test-pandoc-types.hs
 
@@ -3615,9 +3609,9 @@ $
       do k <- choose (1,1 `max` n)
          vectorOf k gen
 
-# Generic programming
+## Generic programming
 
-## Ad-hoc solution
+### Ad-hoc solution
 
 [`Text.Pandoc.Walk`](hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Walk.html)
 defines
@@ -3659,7 +3653,7 @@ Usage examples:
         f (Link _ _ t) = [t]
         f _ = []
 
-# Pandoc filters
+## Pandoc filters
 
 Program which normalizes a pandoc file:
 
@@ -3715,12 +3709,15 @@ This "filter" can be used with pandoc like this:
 > pandoc --filter ./capitalize.hs
 ```
 
-# Advanced
+## Date and Time handling
 
--   `StdGen`
 -   `UTCTime`, `TimeZone`, -- `ZonedTime`
--   `ByteString`
+
+## Words
+
 -   `Word8`
+
+## Bits
 
 # Pandoc's source code
 
