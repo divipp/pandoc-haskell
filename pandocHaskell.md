@@ -1833,7 +1833,7 @@ Functions
     class   (Real a, Fractional a) =>  RealFrac a
     class (RealFrac a, Floating a) =>  RealFloat a
 
-# Intermediate-level Haskell
+# Advanced Haskell
 
 ## Monoids
 
@@ -3611,103 +3611,7 @@ $
 
 ## Generic programming
 
-### Ad-hoc solution
-
-[`Text.Pandoc.Walk`](hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Walk.html)
-defines
-
-    class Walkable a b where
-        walk  ::            (a ->   a) -> b ->   b    -- pure walk
-        walkM :: Monad m => (a -> m a) -> b -> m b    -- effectful walk
-        query :: Monoid c => (a -> c) -> b -> c 
-
-There are lots of `Walkable` instances, notable ones are:
-
-    instance Walkable Block  Pandoc
-    instance Walkable Inline Pandoc
-
-Usage examples:
-
-    allCaps :: Pandoc -> Pandoc     -- capitalize all string
-    allCaps = walk f
-      where
-        f :: Inline -> Inline
-        f (Str xs) = Str $ map toUpper xs
-        f x = x
-
-<!-- -->
-    every2ndCaps :: Pandoc -> Pandoc     -- capitalize every 2nd inline element
-    every2ndCaps p = evalState (walkM f p) False
-      where
-        f :: Inline -> State Bool Inline
-        f (Str xs) = do
-            b <- state $ \b -> (b, not b)
-            pure $ Str $ if b then map toUpper xs else xs
-        f x = pure x
-
-<!-- -->
-    getLinks :: Pandoc -> [Target]
-    getLinks = query f
-      where
-        f :: Inline -> [Target]
-        f (Link _ _ t) = [t]
-        f _ = []
-
-## Pandoc filters
-
-Program which normalizes a pandoc file:
-
-    import qualified Data.Text.IO as Text
-    import Text.Pandoc
-
-    main :: IO ()
-    main = do
-        text <- Text.readFile "example.md"
-        p <- runIOorExplode $ readMarkdown (def {readerExtensions = pandocExtensions}) text
-        text' <- runIOorExplode $ writeMarkdown (def {writerExtensions = pandocExtensions}) p
-        Text.writeFile "exampleOut.md" text'
-
-It is easy to modify this program to transform the document, for example
-capitalize headers in it.
-
-Another option is to use *pandoc filters*.
-
-[`Text.Pandoc.JSON`](hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-JSON.html)
-defines
-
-    class ToJSONFilter a where
-        toJSONFilter :: a -> IO () 
-
-Notable instances are
-
-    instance Walkable a Pandoc => ToJSONFilter (a -> a)
-    instance Walkable a Pandoc => ToJSONFilter (a -> [a])
-
-so `toJSONFilter` can be specialized as, for example
-
-    toJSONFilter :: (Inline -> Inline) -> IO ()
-    -- produces a program which walks a pandoc JSON representation with the given function
-
-Example usage:
-
-    ------------------------- contents of capitalize.hs
-    #!/usr/bin/env runghc
-    import Data.Char
-    import Text.Pandoc
-    import Text.Pandoc.JSON
-
-    main :: IO ()
-    main = toJSONFilter f
-      where
-        f :: Inline -> Inline
-        f (Str xs) = Str $ map toUpper xs
-        f x = x
-
-This "filter" can be used with pandoc like this:
-
-``` {.bash}
-> pandoc --filter ./capitalize.hs
-```
+TODO
 
 ## Date and Time handling
 
@@ -4045,6 +3949,104 @@ format. TODO
     newtype Format = Format String
 
 Example formats: TODO
+
+### Walking documents
+
+[`Text.Pandoc.Walk`](hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Walk.html)
+defines
+
+    class Walkable a b where
+        walk  ::            (a ->   a) -> b ->   b    -- pure walk
+        walkM :: Monad m => (a -> m a) -> b -> m b    -- effectful walk
+        query :: Monoid c => (a -> c) -> b -> c 
+
+There are lots of `Walkable` instances, notable ones are:
+
+    instance Walkable Block  Pandoc
+    instance Walkable Inline Pandoc
+
+Usage examples:
+
+    allCaps :: Pandoc -> Pandoc     -- capitalize all string
+    allCaps = walk f
+      where
+        f :: Inline -> Inline
+        f (Str xs) = Str $ map toUpper xs
+        f x = x
+
+<!-- -->
+    every2ndCaps :: Pandoc -> Pandoc     -- capitalize every 2nd inline element
+    every2ndCaps p = evalState (walkM f p) False
+      where
+        f :: Inline -> State Bool Inline
+        f (Str xs) = do
+            b <- state $ \b -> (b, not b)
+            pure $ Str $ if b then map toUpper xs else xs
+        f x = pure x
+
+<!-- -->
+    getLinks :: Pandoc -> [Target]
+    getLinks = query f
+      where
+        f :: Inline -> [Target]
+        f (Link _ _ t) = [t]
+        f _ = []
+
+### Pandoc filters
+
+Program which normalizes a pandoc file:
+
+    import qualified Data.Text.IO as Text
+    import Text.Pandoc
+
+    main :: IO ()
+    main = do
+        text <- Text.readFile "example.md"
+        p <- runIOorExplode $ readMarkdown (def {readerExtensions = pandocExtensions}) text
+        text' <- runIOorExplode $ writeMarkdown (def {writerExtensions = pandocExtensions}) p
+        Text.writeFile "exampleOut.md" text'
+
+It is easy to modify this program to transform the document, for example
+capitalize headers in it.
+
+Another option is to use *pandoc filters*.
+
+[`Text.Pandoc.JSON`](hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-JSON.html)
+defines
+
+    class ToJSONFilter a where
+        toJSONFilter :: a -> IO () 
+
+Notable instances are
+
+    instance Walkable a Pandoc => ToJSONFilter (a -> a)
+    instance Walkable a Pandoc => ToJSONFilter (a -> [a])
+
+so `toJSONFilter` can be specialized as, for example
+
+    toJSONFilter :: (Inline -> Inline) -> IO ()
+    -- produces a program which walks a pandoc JSON representation with the given function
+
+Example usage:
+
+    ------------------------- contents of capitalize.hs
+    #!/usr/bin/env runghc
+    import Data.Char
+    import Text.Pandoc
+    import Text.Pandoc.JSON
+
+    main :: IO ()
+    main = toJSONFilter f
+      where
+        f :: Inline -> Inline
+        f (Str xs) = Str $ map toUpper xs
+        f x = x
+
+This "filter" can be used with pandoc like this:
+
+``` {.bash}
+> pandoc --filter ./capitalize.hs
+```
 
 ## Logging
 
