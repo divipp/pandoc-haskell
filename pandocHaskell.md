@@ -209,93 +209,6 @@ The language can be set like `--variable=lang:hu`.
 Several output formats allow other useful options like `--css` and
 `--self-contained` for HTML output.
 
-## Pandoc's software architecture
-
-Pandoc has a modular design: it has a reader for each input format,
-which parses the input document and produces an inner representation of
-the document (like an abstract syntax tree or AST), and a writer for
-each output format, which converts this inner representation into the
-target.
-
-The inner representation can be observed via the `native` output format:
-
-``` {.bash}
-$ echo 'Hello, *World*!' | pandoc --to native
-[Para [Str "Hello,",Space,Emph [Str "World"],Str "!"]]
-```
-
-The inner representation can be serialized in `JSON` format:
-
-``` {.bash}
-$ echo 'Hello, *World*!' | pandoc --to json
-{"blocks":[{"t":"Para","c":[{"t":"Str","c":"Hello,"},{"t":"Space"}
-,{"t":"Emph","c":[{"t":"Str","c":"World"}]},{"t":"Str","c":"!"}]}]
-,"pandoc-api-version":[1,17,3,1],"meta":{}}
-```
-
-The `json` format has a fast de-serializer. An example of
-de-serialization:
-
-``` {.bash}
-$ echo 'Hello, *World*!' | pandoc --to json | pandoc --from json
-<p>Hello, <em>World</em>!</p>
-```
-
-One can run filters on the JSON format. The filter can be implemented in
-Haskell or in any other languages.
-
-Readers and writers have *extensions* which can be turned on and off
-individually.
-
-Each output format has a default *template* file which is used to
-produce standalone documents in the given format. The default template
-is customizable with variables like `title`, `date`, `lang`, ... or one
-can replace the default template by a custom template file.
-
-    ________                 _____________                 _____________                 ______
-    input(s)  ---reader--->  native format  ---filter--->  native format  ---writer--->  output
-              customized by                 freely given                  customized by
-              - language                                                  - language
-                - extensions                                                - extensions
-                                                                            - template file
-                                                                              - variables
-
-## Pandoc's source code
-
-The most recent *released* source code and API of Pandoc packages can be
-found at HackageDB, the Haskell community's central package archive of
-open source software. The source code of the development versions is on
-GitHub.
-
-The two main Pandoc related packages and their main contents are the
-following:
-
--   **pandoc-type** [on
-    HackageDB](https://hackage.haskell.org/package/pandoc-types) and [on
-    GitHub](https://github.com/jgm/pandoc-types)
-    -   [inner document data structure
-        definition](https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html)
-        (1 `.hs` module, \~24KB)
-    -   basic operations on the inner representation (5 `.hs` module,
-        \~49KB)
-    -   basic tests on the inner representation
--   **pandoc** [on
-    HackageDB](https://hackage.haskell.org/package/pandoc) and [on
-    GitHub](https://github.com/jgm/pandoc)
-    -   [pandoc API](https://hackage.haskell.org/package/pandoc#modules)
-        implementation
-        -   infrastructure (45 `.hs` modules, \~495KB)
-        -   source code of readers in the `Readers` directory (45 `.hs`
-            modules, \~918KB)
-        -   source code of writers in the `Writers` directory (36 `.hs`
-            modules, \~885KB)
-    -   pandoc executable source code (1 `.hs` module, \~1.3KB)
-    -   static data files
-        -   templates for each output format (39 files, \~69Kb)
-    -   test framework
-        -   source code (46 `.hs` files, \~336KB)
-        -   tests (576 files, \~4762KB)
-
 # Haskell basics
 
 This section is a revision of the required Haskell knowledge rather than
@@ -3629,7 +3542,92 @@ TODO
 
 # Pandoc's source code
 
-## Overview
+## Web locations
+
+The most recent *released* source code and API of Pandoc packages can be
+found at HackageDB, the Haskell community's central package archive of
+open source software. The source code of the development versions is on
+GitHub.
+
+The two main Pandoc related packages and their main contents are the
+following:
+
+-   **pandoc-type** [on
+    HackageDB](https://hackage.haskell.org/package/pandoc-types) and [on
+    GitHub](https://github.com/jgm/pandoc-types)
+    -   [inner document data structure
+        definition](https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html)
+        (1 `.hs` module, \~24KB)
+    -   basic operations on the inner representation (5 `.hs` module,
+        \~49KB)
+    -   basic tests on the inner representation
+-   **pandoc** [on
+    HackageDB](https://hackage.haskell.org/package/pandoc) and [on
+    GitHub](https://github.com/jgm/pandoc)
+    -   [pandoc API](https://hackage.haskell.org/package/pandoc#modules)
+        implementation
+        -   infrastructure (45 `.hs` modules, \~495KB)
+        -   source code of readers in the `Readers` directory (45 `.hs`
+            modules, \~918KB)
+        -   source code of writers in the `Writers` directory (36 `.hs`
+            modules, \~885KB)
+    -   pandoc executable source code (1 `.hs` module, \~1.3KB)
+    -   static data files
+        -   templates for each output format (39 files, \~69Kb)
+    -   test framework
+        -   source code (46 `.hs` files, \~336KB)
+        -   tests (576 files, \~4762KB)
+
+## Overview of Pandoc's software architecture
+
+Pandoc has a modular design: it has a reader for each input format,
+which parses the input document and produces an inner representation of
+the document (like an abstract syntax tree or AST), and a writer for
+each output format, which converts this inner representation into the
+target.
+
+The inner representation can be observed via the `native` output format:
+
+``` {.bash}
+$ echo 'Hello, *World*!' | pandoc --to native
+[Para [Str "Hello,",Space,Emph [Str "World"],Str "!"]]
+```
+
+The inner representation can be serialized in `JSON` format:
+
+``` {.bash}
+$ echo 'Hello, *World*!' | pandoc --to json
+{"blocks":[{"t":"Para","c":[{"t":"Str","c":"Hello,"},{"t":"Space"}
+,{"t":"Emph","c":[{"t":"Str","c":"World"}]},{"t":"Str","c":"!"}]}]
+,"pandoc-api-version":[1,17,3,1],"meta":{}}
+```
+
+The `json` format has a fast de-serializer. An example of
+de-serialization:
+
+``` {.bash}
+$ echo 'Hello, *World*!' | pandoc --to json | pandoc --from json
+<p>Hello, <em>World</em>!</p>
+```
+
+One can run filters on the JSON format. The filter can be implemented in
+Haskell or in any other languages.
+
+Readers and writers have *extensions* which can be turned on and off
+individually.
+
+Each output format has a default *template* file which is used to
+produce standalone documents in the given format. The default template
+is customizable with variables like `title`, `date`, `lang`, ... or one
+can replace the default template by a custom template file.
+
+    ________                 _____________                 _____________                 ______
+    input(s)  ---reader--->  native format  ---filter--->  native format  ---writer--->  output
+              customized by                 freely given                  customized by
+              - language                                                  - language
+                - extensions                                                - extensions
+                                                                            - template file
+                                                                              - variables
 
 Main components of Pandoc and related main data structures are shown on
 \ref{fig:data}. The next sections discuss the components one-by-one.
