@@ -1,11 +1,15 @@
 ---
 author:
-- '*draft version 4*'
+- '*draft version 5*'
+classoption: oneside
+documentclass: book
+geometry: 'margin=1.2in'
+monofont: DejaVu Sans Mono
 title: 'Pandoc''s Haskell'
+urlcolor: blue
 ---
 
 \defaultfontfeatures{Scale=MatchLowercase}
-\setmonofont{DejaVu Sans Mono}
 \clearpage
 Goals of the tutorial
 
@@ -18,7 +22,6 @@ Basics](#haskell-basics).
 
 The tutorial aims to be self-contained.
 
-\clearpage
 # Introduction to Pandoc
 
 [Pandoc](http://pandoc.org/) is a document converter which can convert
@@ -293,7 +296,6 @@ following:
         -   source code (46 `.hs` files, \~336KB)
         -   tests (576 files, \~4762KB)
 
-\clearpage
 # Haskell basics
 
 This section is a revision of the required Haskell knowledge rather than
@@ -1831,7 +1833,6 @@ Functions
     class   (Real a, Fractional a) =>  RealFrac a
     class (RealFrac a, Floating a) =>  RealFloat a
 
-\clearpage
 # Monoids
 
 TODO

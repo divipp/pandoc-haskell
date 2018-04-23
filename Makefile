@@ -5,7 +5,7 @@ all: pandocHaskell.pdf
 pandocHaskell.pdf: App.pdf Data.pdf Pandoc.pdf
 
 %.pdf: %.md
-	pandoc --from=markdown --to=latex --toc --number-sections --highlight-style=tango -V geometry:margin=1.2in -V urlcolor=blue --pdf-engine=xelatex $< --indented-code-classes=haskell -o $@
+	pandoc --from=markdown --to=latex --toc --number-sections --highlight-style=tango --pdf-engine=xelatex $< --indented-code-classes=haskell -o $@
 
 .PHONY: normalize
 normalize: normalized.md
