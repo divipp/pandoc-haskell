@@ -1,6 +1,5 @@
 digraph G {
 compound=true;
-node [style=plain, color=black]
 subgraph clusterPO {
     label = "parseOptions"
     cmd [label="getArgs", shape =box]
@@ -26,9 +25,14 @@ subgraph cluster0 {
             Opt -> variables -> WriterOptions
             {rank=same; Pandoc1; Pandoc2; Pandoc3; Pandoc4}
         }
+    output -> error [ltail=cluster1]
     output -> log [ltail=cluster1];
+    {rank=same;error;log}
     }
-Opt [label="opts :: Opt"]
+Opt [label=":: Opt"]
+error [label=":: PandocError"]
+reader [label=":: Reader"]
+writer [label=":: Writer"]
 ReaderOptions [label=":: ReaderOptions"]
 WriterOptions [label=":: WriterOptions"]
 log [label=":: [LogMessage]"]

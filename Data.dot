@@ -1,0 +1,82 @@
+digraph G {
+compound=true;
+//rankdir=BT;
+
+subgraph clusterAction {
+    label = "actions"
+    PandocIO; CommonState; /*MediaBag; MimeType;*/ PandocPure; PureState/*; FileTree; Archive*/
+    PandocMonad
+}
+subgraph clusterLog {
+    label = "logging"
+    PandocError; LogMessage; Verbosity; /*SourcePos;*/
+}
+subgraph clusterReader {
+    label = "readers"
+    Reader; ReaderOptions; Parser; ParserState
+}
+subgraph clusterWriter {
+    label = "writers"
+    Writer; WriterOptions; Doc; Extensions
+}
+subgraph clusterPandoc {
+    label = "document representation"
+    Pandoc; Meta; Block; Inline
+}
+subgraph clusterCLI {
+    label = "command line interface"
+    Opt; /*Verbosity;*/ /*TrackChanges;*/ /*Extensions*//*; Extension*/
+}
+
+
+Pandoc -> {Meta}
+{Pandoc, Meta, Inline} -> Block [constraint=false]
+Meta -> {Inline}
+Block -> {Inline, Block}
+Inline -> {Inline}
+
+PandocIO -> {/*PandocError,*/ CommonState}
+
+PandocPure -> {/*PandocError,*/ CommonState, PureState}
+
+CommonState -> {LogMessage/*, Verbosity*//*, MediaBag*//*, Lang, Translations*/} [ltail=clusterAction, lhead=clusterLog, minlen=2]
+
+
+/*
+PureState -> {Archive, FileTree}
+MediaBag -> MimeType
+LogMessage -> SourcePos
+Translations -> Term
+*/
+
+Extensions // -> Extension
+
+ReaderOptions -> {Extensions/*, TrackChanges*/} [constraint=false]
+
+WriterOptions -> {Extensions}
+
+ParserState -> {ReaderOptions/*, Meta, Inline*//*, SourcePos*/}
+ParserState -> LogMessage [ltail=clusterReader, lhead=clusterLog, minlen=3]
+
+Parser -> ParserState
+
+Reader -> ReaderOptions
+Writer -> WriterOptions
+{Writer} -> Pandoc [ltail=clusterWriter, lhead=clusterPandoc, minlen=2]
+{Reader/*, ParserState*/} -> Pandoc [ltail=clusterReader, lhead=clusterPandoc, minlen=3]
+
+//Opt -> {Verbosity/*, TrackChanges*/}
+
+Doc
+
+PandocMonad -> {PandocIO, PandocPure} [label="instance"]
+PandocMonad -> CommonState
+PandocMonad [label = "class PandocMonad"]
+
+//LogMessage -> Opt [style=invis]
+Opt -> PandocIO [ltail=clusterCLI, lhead=clusterAction, minlen=3]
+Opt -> Parser [ltail=clusterCLI, lhead=clusterReader, minlen=2]
+Opt -> Writer [ltail=clusterCLI, lhead=clusterWriter, minlen=2]
+
+}
+

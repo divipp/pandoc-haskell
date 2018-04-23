@@ -1,0 +1,42 @@
+digraph G {
+compound=true;
+ranksep=0.4;
+subgraph cluster_01 { 
+    label = "Legend";
+    style = dashed
+    node [shape=none]
+    enum [label="0 fields"]
+    node [shape=oval; style=dotted]
+    type
+    node [shape=oval; style=dashed]
+    newtype
+    node [shape=oval, style=solid]
+    record [label="1 constr."]
+    node [shape=box,style=solid]
+    data [label=">1 constr."]
+//data -> enum -> record -> newtype -> type [style =invis]
+}
+//rankdir=BT;
+node [shape=none]
+Alignment; ListNumberStyle; ListNumberDelim; QuoteType; MathType; CitationMode // data, Enum-like
+node [shape=oval; style=dashed]
+Meta; Format;  // newtype
+node [shape=oval; style=dotted]
+ListAttributes; Attr; TableCell; Target // type
+node [shape=box,style=solid]
+MetaValue; Block; Inline; // data
+node [shape=oval, style=solid]
+Pandoc; Citation // record
+
+Pandoc -> {Meta, Block}
+Meta -> MetaValue
+MetaValue -> {Inline, Block, MetaValue}
+Block -> {Inline, Block, Attr, Format, ListAttributes, Alignment, TableCell}
+Inline -> {Inline, Block, QuoteType, Citation, Attr, MathType, Format, Target}
+ListAttributes -> {ListNumberStyle, ListNumberDelim}
+TableCell -> Block
+Citation -> CitationMode
+
+//type -> Citation [style=invis]
+}
+

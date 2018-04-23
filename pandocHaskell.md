@@ -3714,30 +3714,444 @@ This "filter" can be used with pandoc like this:
 > pandoc --filter ./capitalize.hs
 ```
 
-# Main architecture
+# Advanced
 
-![`Text.Pandoc.App`](App.pdf)
+-   `StdGen`
+-   `UTCTime`, `TimeZone`, -- `ZonedTime`
+-   `ByteString`
+-   `Word8`
 
-TODO
+# Pandoc's source code
 
-`PandocIO`
+## Overview
 
--   `PandocError`, `ExpectT`, `MonadError`
--   `runIO`, `runIOorExplode`, `liftIOError`
--   `CommonState`, `StateT`
--   `class PandocMonad`
-    -   `CommonState`
-        -   `LogMessage`, `Verbosity`
-        -   `MediaBag`
-        -   `Lang`, `Translations`, -- `Term`, `parseBCP47`
-    -   `LogMessage`
-    -   `MimeType`
-    -   `StdGen`
-    -   `UTCTime`, `TimeZone`, -- `ZonedTime`
-    -   `ByteString`
-    -   `PandocPure`
-        -   `PureState`
-            -   `FileTree`
-            -   `Archive`
-            -   `Word8`
--   `instance PandocMonad PandocIO`
+Main components of Pandoc and related main data structures are shown on
+\ref{fig:data}. The next sections discuss the components one-by-one.
+
+![Dependencies between main components and their data
+structures\label{fig:data}](Data.pdf)
+
+## Document representation
+
+![Dependencies between data types for document
+representation](Pandoc.pdf)
+
+A Pandoc document has two main parts: metavalues and contents (which is
+a list of `Block`s):
+
+    data Pandoc = Pandoc Meta [Block]
+
+The content is built up with `Inline` and `Block` elements:
+
+    data Inline      -- content placed inline, i.e. without line breaks before and after it
+    data Block       -- content placed with line breaks around it
+
+### Inline elements
+
+#### Basic inline elements
+
+    data Inline
+        = Str String            -- ^ Text (string)
+        | Space                 -- ^ Inter-word space
+        | ...
+
+The most basic inline element is a string of characters:
+
+    Str "Hello" :: Inline
+
+Inter-word spaces are represented by `Space`:
+
+    Space :: Inline
+
+For example, "Hello world!" is represented as list of inline elements:
+
+    [Str "Hello", Space, Str "world!"] :: [Inline]
+
+#### Non-canonical representations
+
+There are several representations of the same text, but only one of them
+is *canonical*.
+
+The general rules for canonicity (in order of importance):
+
+1.  **Use the most specific constructor**
+
+    For example, `Space` should be used instead of `Str " "`.
+
+2.  **Use less constructors**
+
+    For example, `[Str "world!"]` should be used instead of
+    `[Str "world", Str "!"]`.
+
+Examples:
+
+    [Str "Hello", Space, Str "world!"] :: [Inline]          -- canonical
+
+<!-- -->
+    [Str "Hello world!"] :: [Inline]                        -- non-canonical (space inside Str)
+
+<!-- -->
+    [Str "Hello", Space, Str "world", Str "!"] :: [Inline]  -- non-canonical (Str next to Str)
+
+#### Spaces
+
+    data Inline
+        = ...
+        | Space                 -- ^ Inter-word space
+        | SoftBreak             -- ^ Soft line break
+        | LineBreak             -- ^ Hard line break
+        | ...
+
+A *soft line break* is rendered as a space or as a newline depending on
+the page width.
+
+Spaces cannot be next to each other:
+
+    [Space, SoftBreak]      -- non-canonical (space next to space)
+
+Non-breaking space `'\160'` is stored inside `Str` elements.
+
+#### Basic markups
+
+    data Inline
+        = ...
+        | Emph [Inline]             -- ^ Emphasized text
+        | Strong [Inline]           -- ^ Strongly emphasized text
+        | Strikeout [Inline]        -- ^ Strikeout text
+        | Superscript [Inline]      -- ^ Superscripted text
+        | Subscript [Inline]        -- ^ Subscripted text
+        | SmallCaps [Inline]        -- ^ Small caps text
+        | Quoted QuoteType [Inline] -- ^ Quoted text
+        | ...
+
+The type of quotations:
+
+    data QuoteType = SingleQuote | DoubleQuote
+
+The general rules of canonicity apply:
+
+    [Emph [Str "a"], Emph [Str "b"]]             -- non canonical (Emph next to Emph)
+
+<!-- -->
+    [Emph [Str "a", Emph [Str "b"]]]             -- non canonical (Emph inside Emph)
+
+<!-- -->
+    [Emph [Str "a", Strikeout [Emph [Str "b"]]]] -- non canonical (Emph deeply inside Emph)
+
+<!-- -->
+    [Strong [Str "a", Emph [Str "b"]]]           -- non canonical (Strong shadows Emph)
+
+#### Links and images
+
+Only links to actual images are stored in the document, so the
+representation of images is similar to the representation of links:
+
+    data Inline
+        = ...
+        | Link  Attr [Inline] Target -- ^ Hyperlink: alt text (list of inlines), target
+        | Image Attr [Inline] Target -- ^ Image:  alt text (list of inlines), target
+        | ...
+
+`Target` is a synonym for (URL, title) pairs:
+
+    type Target = (String, String)  --  (URL, title)
+
+Example image:
+
+    Image nullAttr [Str "dog_cannot_be_shown"] ("http://...", "pitbull")
+
+Attributes are discussed later.
+
+#### Notes
+
+Footnotes are stored inline at the place where they are referred in the
+text. They are moved to the end of the text when the text is rendered.
+
+    data Inline
+        = ...
+        | Note [Block]          -- ^ Footnote or endnote
+        | ...
+
+#### Other inline elements
+
+Other inline elements (native spans, code blocks, raw elements, embedded
+LaTeX and citations) are discussed later.
+
+### Block elements
+
+#### Paragraphs
+
+    data Block
+        = Plain [Inline]        -- ^ Plain text, not a paragraph
+        | Para [Inline]         -- ^ Paragraph
+        | LineBlock [[Inline]]  -- ^ Multiple non-breaking lines
+        | ...
+
+`Plain xs` is rendered as a plain block of text.
+
+`Para xs` is rendered as a paragraph (with `<p>` tags in HTML).
+
+`LineBlock xss` is rendered as non-breaking lines with line breaks
+between them (like a verse).
+
+#### Block quotes
+
+Block quotes are usually rendered with more indentation.
+
+    data Block
+        = ...
+        | BlockQuote [Block]    -- ^ Block quote (list of blocks)
+        | ...
+
+#### Headers
+
+Headers with level 1, 2, 3, 4, 5, 6 are supported in HTML output.
+
+    data Block
+        = ...
+        | Header Int Attr [Inline] -- ^ Header - level (integer) and text (inlines)
+        | ...
+
+Attributes are discussed later.
+
+#### Horizontal rule
+
+Rendered as a horizontal rule.
+
+    data Block
+        = ...
+        | HorizontalRule        -- ^ Horizontal rule
+        | ...
+
+#### Other block elements
+
+TODO: document `Null`
+
+    data Block
+        = ...
+        | Null                  -- ^ Nothing
+        | ...
+
+Other block elements (native divs, code fragments, raw blocks, lists and
+tables) are discussed later.
+
+### Attributes
+
+There are 3 different kind of attributes:
+
+-   identifiers
+
+    Identifiers are rendered as HTML identifiers in HTML output.
+
+    Identifiers are used for labels and link anchors in a few other
+    writers.
+
+-   classes
+
+    The typical use case of classes is to style HTML output with CSS.
+
+    Other use cases:
+
+    -   Headers with the class `unnumbered` will not be numbered.
+    -   Code blocks supports the `numberLines` and `lineAnchors` classes
+        (see later).
+    -   Code blocks and code fragments use classes like `haskell` to set
+        the language (for syntax highlighting).
+    -   `smallcaps` class is used to write text in small caps
+    -   Native divs use the `column` class to set multi-column layout.
+
+-   key-value pairs
+
+    Use cases:
+
+    -   `lang` and `dir` keys are used to set the language and direction
+        (`rtl` or `ltr`) of text.
+    -   `startFrom` key is used to set the start number if code block
+        lines are numbered.
+    -   Native divs with `column` class use the `with` key for
+        specifying the number of columns.
+    -   The `width` and `height` keys on images are treated specially.
+
+`Attr` is a triple of an identifier, classes and key-value pairs. The
+`""` string is used if there is no identifier attribute.
+
+    -- | Attributes: identifier, classes, key-value pairs
+    type Attr = (String, [String], [(String, String)])
+
+`nullAttr` is the default:
+
+    nullAttr :: Attr
+    nullAttr = ("",[],[])
+
+#### Native spans and divs
+
+Native spans and divs are used to set attributes of any inlines or list
+of blocks.
+
+    data Inline
+        = ...
+        | Span Attr [Inline]    -- ^ Generic inline container with attributes
+        | ...
+
+<!-- -->
+    data Block
+        = ...
+        | Div Attr [Block]      -- ^ Generic block container with attributes
+        | ...
+
+### Source code in documents
+
+Inline code fragments:
+
+    data Inline
+        = ...
+        | Code Attr String      -- ^ Inline code (literal)
+        | ...
+
+Code blocks:
+
+    data Block
+        = ...
+        | CodeBlock Attr String -- ^ Code block (literal) with attributes
+        | ...
+
+The following attributes are treated specially in writers:
+
+-   Classes like `haskell` are used to set the language (for syntax
+    highlighting).
+-   The `numberLines` (or `number-lines`) class will cause the lines of
+    the code block to be numbered, starting with 1 or the value of the
+    `startFrom` key.
+    -   `startFrom` key is used to set the start number
+-   The `lineAnchors` (or `line-anchors`) class will cause the lines of
+    code blocks to be clickable anchors in HTML output.
+
+### Raw elements
+
+Raw inlines and raw blocks is treated as raw content with the designated
+format. TODO
+
+    data Inline
+        = ...
+        | RawInline Format String -- ^ Raw inline
+        | ...
+
+<!-- -->
+    data Block
+        = ...
+        | RawBlock Format String -- ^ Raw block
+        | ...
+
+<!-- -->
+    -- | Formats for raw blocks
+    newtype Format = Format String
+
+Example formats: TODO
+
+## Logging
+
+### `PandocError`
+
+### `LogMessage`
+
+### `Verbosity`
+
+## Actions
+
+### `CommonState` data type
+
+### `PandocMonad` type class
+
+#### MediaBag
+
+#### MimeType
+
+### `PandocIO`
+
+### `PandocPure`
+
+## Readers
+
+## Writers
+
+## Command line interface
+
+![Main data flow](App.pdf)
+
+## Additional features
+
+### Language support
+
+### Filters
+
+### Lists
+
+    data Block
+        = ...
+        | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes
+                                -- and a list of items, each a list of blocks)
+        | BulletList [[Block]]  -- ^ Bullet list (list of items, each
+                                -- a list of blocks)
+        | DefinitionList [([Inline],[[Block]])]  -- ^ Definition list
+                                -- Each list item is a pair consisting of a
+                                -- term (a list of inlines) and one or more
+                                -- definitions (each a list of blocks)
+        | ...
+
+
+    -- | List attributes.
+    type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
+
+    -- | Style of list numbers.
+    data ListNumberStyle = DefaultStyle
+                         | Example
+                         | Decimal
+                         | LowerRoman
+                         | UpperRoman
+                         | LowerAlpha
+                         | UpperAlpha deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
+
+    -- | Delimiter of list numbers.
+    data ListNumberDelim = DefaultDelim
+                         | Period
+                         | OneParen
+                         | TwoParens deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
+
+### Tables
+
+    data Block
+        = ...
+        | Table [Inline] [Alignment] [Double] [TableCell] [[TableCell]]  -- ^ Table,
+                                -- with caption, column alignments (required),
+                                -- relative column widths (0 = default),
+                                -- column headers (each a list of blocks), and
+                                -- rows (each a list of lists of blocks)
+        | ...
+
+### Math support
+
+    data Inline
+        = ...
+        | Math MathType String  -- ^ TeX math (literal)
+        | ...
+
+### Citations
+
+    data Inline
+        = ...
+        | Cite [Citation]  [Inline] -- ^ Citation (list of inlines)
+        | ...
+
+### Support for slide shows
+
+## Developer tools
+
+### Test suit
+
+### Benchmarks
+
+### Packaging
+
+### Documentation
+
+### Version control
