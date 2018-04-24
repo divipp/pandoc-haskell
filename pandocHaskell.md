@@ -1688,11 +1688,12 @@ Examples:
 
 The following language extensions are used by Pandoc:
 
--   preprocessing: `CPP`
+-   preprocessing: [`CPP`](#cpp)
 -   imports: `NoImplicitPrelude`
 -   syntactic sugars
     -   expression related: `TupleSections`, `MultiWayIf`, `LambdaCase`
-    -   pattern related: `PatternGuards`, `ViewPatterns`
+    -   pattern related: `PatternGuards`,
+        [`ViewPatterns`](#viewpatterns)
     -   both for expressions and patterns: `OverloadedStrings`
 -   type class extensions
     -   classes: `MultiParamTypeClasses`
@@ -1704,6 +1705,61 @@ The following language extensions are used by Pandoc:
 -   types: `ExplicitForAll`, `ScopedTypeVariables`, `RelaxedPolyRec`
 -   type declaration: `GADTs`
 -   other: `TemplateHaskell`
+
+### `CPP`
+
+CPP stands for C PreProcessor.
+
+CPP is used for conditional compilation. Typical use cases for
+conditional compilation:
+
+-   backward compatibility for library dependencies
+-   allow the code to be platform-dependent
+-   turn features on/off in a library or executable
+
+Syntax: one CPP directive per line, *without indentation*.
+
+CPP directives used in Pandoc:
+
+-   `#if` *condition*
+-   `#ifdef` *macro*
+-   `#ifndef` *macro*
+-   `#else`
+-   `#endif`
+
+`#if`, `#ifdef` and `#ifndef` need a matching `#endif`.
+
+`#else` is optional but should be placed between an `#if`... and an
+`#endif` pair.
+
+#### Example: `#if` used for backward compatibility
+
+    #if MIN_VERSION_base(4,8,3)
+    import System.IO.Error (IOError, isDoesNotExistError)
+    #else
+    import System.IO.Error (isDoesNotExistError)
+    #endif
+
+#### Example: `#ifdef` and `#ifndef` used for platform-dependent code
+
+    #ifndef _WINDOWS
+    import System.Posix.IO (stdOutput)
+    import System.Posix.Terminal (queryTerminal)
+    #endif
+
+Later in the same module, in a `do` block:
+
+    #ifdef _WINDOWS
+      let istty = True
+    #else
+      istty <- queryTerminal stdOutput
+    #endif
+
+#### Example: turn a feature on/off
+
+cabal package flags define CPP macros (see later):
+
+    #ifdef EMBED_DATA_FILES
 
 ### `ViewPatterns`
 
