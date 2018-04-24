@@ -10,19 +10,22 @@ urlcolor: blue
 ---
 
 \defaultfontfeatures{Scale=MatchLowercase}
-\clearpage
-Goals of the tutorial
+# Preface
+
+## Goals of the tutorial
 
 1.  reach intermediate level Haskell knowledge by guiding through the
     codebase of Pandoc
 2.  become acquainted with the codebase of Pandoc
 
-Basic Haskell knowledge is required; see [Haskell
-Basics](#haskell-basics).
+### Target audience
+
+Basic Haskell knowledge is required; see [Basic Haskell language
+constructs](#basic-haskell-language-constructs).
 
 The tutorial aims to be self-contained.
 
-# Introduction to Pandoc
+## Introduction to Pandoc
 
 [Pandoc](http://pandoc.org/) is a document converter which can convert
 between several markup formats like Markdown and also support document
@@ -36,7 +39,7 @@ Pandoc is the most popular Haskell application.
 ![Debian Popularity Contest trends for the most popular Haskell
 packages](debian-popcon.png)
 
-## Markdown basics
+### Markdown basics
 
 Markdown is designed to be easy to write and read.\
 A simple example Markdown document is the following:
@@ -70,7 +73,7 @@ all the details.
 The markdown source of this tutorial can be found
 [here](https://github.com/divipp/pandoc-haskell).
 
-## Command line interface of `pandoc`
+### Command line interface of `pandoc`
 
 By default `pandoc` works as a pipe:
 
@@ -209,7 +212,7 @@ The language can be set like `--variable=lang:hu`.
 Several output formats allow other useful options like `--css` and
 `--self-contained` for HTML output.
 
-# Haskell basics
+# Basic Haskell language constructs
 
 This section is a revision of the required Haskell knowledge rather than
 a full-blown Haskell introduction. Skim through this section to note in
@@ -717,7 +720,393 @@ Mutual recursion:
 
 Each type annotation should have a corresponding definition.
 
-# Haskell Basics (2)
+# Basic Haskell declarations
+
+## Numbers
+
+*Entities in this section are defined in `Prelude`.*
+
+Types
+
+    Int      :: *    --- integer modulo 2^64 (or 2^32)
+    Integer  :: *    --- integer
+    Rational :: *    --- ratio of two integers
+    Float    :: *    --- single precision floating point number
+    Double   :: *    --- double precision floating point number
+
+Type classes
+
+    Integral   =  {Int, Integer}
+    Num        =  {Int, Integer, Rational, Float, Double}    -- + complex numbers, ...
+    Real       =  {Int, Integer, Rational, Float, Double}    -- no complex numbers here
+    Fractional =                {Rational, Float, Double}
+    RealFrac   =                {Rational, Float, Double}    -- no complex numbers here
+    Floating   =                          {Float, Double}
+    RealFloat  =                          {Float, Double}    -- no complex numbers here
+
+Constants
+
+    pi :: Floating a => a    --- π = 3.14..
+
+Conversions
+
+    fromIntegral :: (Num b, Integral a) => a -> b       --- integer to any number type
+    realToFrac   :: (Fractional b, Real a) => a -> b    --- real to fractional
+
+Rounding
+
+    truncate :: (Integral b, RealFrac a) => a -> b    --- round towards zero
+    round    :: (Integral b, RealFrac a) => a -> b    --- round towards nearest
+    ceiling  :: (Integral b, RealFrac a) => a -> b    --- round up
+    floor    :: (Integral b, RealFrac a) => a -> b    --- round down
+
+Operators
+
+    (+)    :: Num a => a -> a -> a    --- addition
+    (*)    :: Num a => a -> a -> a    --- multiplication
+    (-)    :: Num a => a -> a -> a    --- subtraction
+    negate :: Num a => a -> a      --- negation, can be used with prefix operator '-'
+    (/)    :: Fractional a =>  a -> a -> a    --- division
+    (^)    :: (Num a, Integral b) =>        a -> b -> a    --- non-negative exponent
+    (^^)   :: (Integral b, Fractional a) => a -> b -> a    --- integer exponent
+    (**)   :: Floating a =>                 a -> a -> a    --- floating exponent
+
+Functions
+
+    abs   ::      Num a => a -> a       --- absolute value
+    sqrt  :: Floating a => a -> a       --- square root
+    log   :: Floating a => a -> a       --- logarithm to the base of e
+    exp   :: Floating a => a -> a       --- base e exponential function
+    sin   :: Floating a => a -> a       --- sine of argument in radians
+    cos   :: Floating a => a -> a       --- cosine of argument in radians
+    tan   :: Floating a => a -> a       --- tangent of argument in radians
+    asin  :: Floating a => a -> a       --- arcsine
+    acos  :: Floating a => a -> a       --- arccosine
+    atan  :: Floating a => a -> a       --- arctangent
+    sinh  :: Floating a => a -> a       --- hyperbolic sine
+    cosh  :: Floating a => a -> a       --- hyperbolic cosine
+    tanh  :: Floating a => a -> a       --- hyperbolic tangent
+    asinh :: Floating a => a -> a       --- hyperbolic arcsine
+    acosh :: Floating a => a -> a       --- hyperbolic arccosine
+    atanh :: Floating a => a -> a       --- hyperbolic arctangent
+    quot  :: Integral a => a -> a -> a  --- quotient (multiplicative)
+    div   :: Integral a => a -> a -> a  --- quotient (additive)
+    rem   :: Integral a => a -> a -> a  --- remainder (multiplicative)
+    mod   :: Integral a => a -> a -> a  --- remainder (additive)
+    gcd   :: Integral a => a -> a -> a  --- greatest common divisor
+
+## Booleans and comparison
+
+*Entities in this section are defined in `Prelude`.*
+
+Types
+
+    Bool     :: *    --- boolean value
+    Ordering :: *    --- result of comparison
+
+Type classes
+
+    Eq   = {Int, Double, Char, ...}   -- almost everything without functions
+    Ord  = {Int, Double, Char, ...}   -- almost everything without functions
+
+Constructors
+
+    False     :: Bool       --- false
+    True      :: Bool       --- true
+    GT        :: Ordering   --- greater
+    LT        :: Ordering   --- less
+    EQ        :: Ordering   --- equal
+
+Constants
+
+    otherwise :: Bool       --- same as True
+
+Logical connectives
+
+    (&&) :: Bool -> Bool -> Bool    --- logical and
+    (||) :: Bool -> Bool -> Bool    --- logical or
+    not  :: Bool -> Bool            --- logical negation
+
+Operators
+
+    (==) :: Eq a  => a -> a -> Bool    --- equal
+    (/=) :: Eq a  => a -> a -> Bool    --- not equal
+    (<)  :: Ord a => a -> a -> Bool    --- less
+    (>)  :: Ord a => a -> a -> Bool    --- greater
+    (<=) :: Ord a => a -> a -> Bool    --- less or equal
+    (>=) :: Ord a => a -> a -> Bool    --- greater or equal
+
+Functions
+
+    compare :: Ord a => a -> a -> Ordering    --- compare two elements
+    even :: Integral a => a -> Bool     --- True if even
+    odd  :: Integral a => a -> Bool     --- True if odd
+    min  :: Ord a => a -> a -> a        --- minimum of two elements
+    max  :: Ord a => a -> a -> a        --- maximum of two elements
+
+## Tuples
+
+*Entities in this section are defined in `Prelude`.*
+
+Types
+
+    (,)   :: * -> * -> *            --- ordered pair (2-tuple) type constructor
+    (,,)  :: * -> * -> * -> *       --- ordered triple (3-tuple) type constructor
+    (,,,) :: * -> * -> * -> * -> *  --- 4-tuple type constructor
+    ...
+
+Instances
+
+    instance     (Eq a, Eq b) => Eq (a, b)
+    instance   (Ord a, Ord b) => Ord (a, b)
+    instance (Show a, Show b) => Show (a, b)
+    instance (Read a, Read b) => Read (a, b)
+    ...
+
+Constructors
+
+    (,)   :: a -> b -> (a, b)                   --- ordered pair (2-tuple) constructor
+    (,,)  :: a -> b -> c -> (a, b, c)           --- ordered triple (3-tuple) constructor
+    (,,,) :: a -> b -> c -> d -> (a, b, c, d)   --- 4-tuple constructor
+    ...
+
+Functions
+
+    fst :: (a, b) -> a    --- first element
+    snd :: (a, b) -> b    --- second element
+
+## Lists
+
+*Entities in this section are defined in `Prelude` or `Data.List`.*
+
+Notes
+
+-   In case of `Foldable t`, replace `t` with the list type constructor.
+    For example,
+
+        concat :: [[a]] -> [a]
+
+Type
+
+    [] :: * -> *    --- list type constructor
+
+Instances
+
+    instance   Eq a => Eq [a]
+    instance  Ord a => Ord [a]
+    instance Show a => Show [a]
+    instance Read a => Read [a]
+
+Constructors
+
+    []      :: [a]                  --- empty list
+    (:)     :: a -> [a] -> [a]      --- insert into left end (beginning) of a list
+
+Generic functions
+
+    (++)    :: [a] -> [a] -> [a]    --- concatenate two lists
+    concat  :: Foldable t => t [a] -> [a]    --- concatenate many lists
+    reverse :: [a] -> [a]           --- reverse order of elements
+    head    :: [a] -> a             --- first element of a list
+    last    :: [a] -> a             --- last element of a list
+    init    :: [a] -> [a]           --- all element but the last
+    tail    :: [a] -> [a]           --- all element but the first
+    inits   :: [a] -> [[a]]         --- iterated init
+    tails   :: [a] -> [[a]]         --- iterated tail
+    repeat  :: a -> [a]             --- repeat element infinitely
+
+Functions with `Int`
+
+    (!!)      :: [a] -> Int -> a          --- element indexed by 0, 1, 2, ...
+    length    :: [a] -> Int               --- length of a list
+    take      :: Int -> [a] -> [a]        --- take first n element of a list
+    drop      :: Int -> [a] -> [a]        --- drop first n element of a list
+    splitAt   :: Int -> [a] -> ([a], [a]) --- take and drop together
+    replicate :: Int -> a -> [a]          --- repeat an element n times
+
+Functions with `Bool`
+
+    null :: Foldable t => t a -> Bool       --- True if there is no element
+    and  :: Foldable t => t Bool -> Bool    --- logical and for more values
+    or   :: Foldable t => t Bool -> Bool    --- logical or for more values
+
+Functions with numbers
+
+    sum     :: (Num a, Foldable t) => t a -> a    --- sum of elements
+    product :: (Num a, Foldable t) => t a -> a    --- product of elements
+
+Functions with tuples
+
+    zip   :: [a] -> [b] -> [(a, b)]    --- pairing of list elements (zipping)
+    unzip :: [(a, b)] -> ([a], [b])    --- unzipping of list of pairs
+
+Functions with `Eq`
+
+    elem       :: (Eq a, Foldable t) => a -> t a -> Bool    --- is the element in the list?
+    delete     :: Eq a => a -> [a] -> [a]     --- delete first occurrence of element
+    nub        :: Eq a => [a] -> [a]          --- delete repeating elements
+    group      :: Eq a => [a] -> [[a]]        --- group equal attached elements
+    isPrefixOf :: Eq a => [a] -> [a] -> Bool  --- True if second list starts with first list
+
+Functions with `Ord`
+
+    minimum :: (Ord a, Foldable t) => t a -> a    --- minimum element
+    maximum :: (Ord a, Foldable t) => t a -> a    --- maximum element
+    insert  :: Ord a => a -> [a] -> [a]           --- insert element into sorted list
+    sort    :: Ord a => [a] -> [a]                --- sort list (increasing order)
+
+## Characters
+
+*Entities in this section are defined in `Prelude` or `Data.Char`.*
+
+Type
+
+    Char :: *    --- unicode characters
+
+Functions
+
+    ord        :: Char -> Int    --- unicode code
+    chr        :: Int -> Char    --- character of given unicode code
+    isSpace    :: Char -> Bool   --- True for ' ', '\t', '\n', ...
+    isDigit    :: Char -> Bool   --- True for '1', '2', ...
+    isAlpha    :: Char -> Bool   --- True for 'a', 'A', ...
+    isUpper    :: Char -> Bool   --- True for 'A', 'B', ...
+    isLower    :: Char -> Bool   --- True for 'a', 'b', ...
+    toUpper    :: Char -> Char   --- toUpper 'a' == 'A'
+    toLower    :: Char -> Char   --- toLower 'A' == 'a'
+    digitToInt :: Char -> Int    --- digitToInt '3' == 3
+    intToDigit :: Int -> Char    --- intToDigit 3 == '3'
+
+## Strings
+
+*Entities in this section are defined in `Prelude`.*
+
+Type
+
+    String :: *         --- type String = [Char]
+
+Type class
+
+    Show  = {...}   -- almost everything without functions
+    Read  = {...}   -- almost everything without functions
+
+Functions
+
+    show    :: Show a => a -> String    --- convert to string
+    read    :: Read a => String -> a
+    lines   :: String -> [String]    --- split string by newlines
+    unlines :: [String] -> String    --- concatenate strings with newlines
+    words   :: String -> [String]    --- split string by spaces
+    unwords :: [String] -> String    --- concatenate strings with whitespaces
+
+## Enumerations
+
+*Entities in this section are defined in `Prelude`.*
+
+Type class
+
+    Enum = {Int, Integer, Rational, Float, Double, Char, Bool}
+
+Dot-dot expressions: lists made by arithmetic sequences
+
+    enumFrom       :: Enum a => a -> [a]             --- difference = 1
+    enumFromTo     :: Enum a => a -> a -> [a]        --- difference = 1, with upper bound
+    enumFromThen   :: Enum a => a -> a -> [a]        --- 
+    enumFromThenTo :: Enum a => a -> a -> a -> [a]   --- with upper bound
+
+Syntax
+
+    [1..]      = enumFrom 1
+    [1..100]   = enumFromTo 1 100
+    [1,3..]    = enumFromThen 1 3
+    [1,3..100] = enumFromThenTo 1 3 100
+
+Conversions
+
+    fromEnum :: Enum a => a -> Int    --- index
+    toEnum   :: Enum a => Int -> a    --- inverse of fromEnum
+
+## Higher-order functions
+
+*Entities in this section are defined in `Prelude` or `Data.Function`.*
+
+    id      :: a -> a                           --- identity function
+    const   :: a -> b -> a                      --- constant function creation
+    ($)     :: (a -> b) -> a -> b               --- function application operator
+    (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
+    curry   :: ((a, b) -> c) -> a -> b -> c     --- untuple function argument
+    uncurry :: (a -> b -> c) -> (a, b) -> c     --- tuple two function arguments
+    flip    :: (a -> b -> c) -> b -> a -> c     --- flip two function arguments
+    on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c     --- binary operator creation
+    until   :: (a -> Bool) -> (a -> a) -> a -> a            --- do-while loop
+
+Functions with lists
+
+    map       :: (a -> b) -> [a] -> [b]         --- elementwise function application
+    iterate   :: (a -> a) -> a -> [a]           --- collect iterated function results
+    filter    :: (a -> Bool) -> [a] -> [a]      --- filter a list by condition
+    partition :: (a -> Bool) -> [a] -> ([a], [a])    --- collect also filtered out elements
+    takeWhile :: (a -> Bool) -> [a] -> [a]      --- longest prefix by condition
+    dropWhile :: (a -> Bool) -> [a] -> [a]      --- elements missed by takeWhile
+    span      :: (a -> Bool) -> [a] -> ([a], [a])    --- takeWhile and dropWhile together
+    any :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if exist element for condition
+    all :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if all element has condition
+
+Generalized functions
+
+    zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]                --- zip with function
+    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]                  --- group by equivalence
+    sortBy    :: (a -> a -> Ordering) -> [a] -> [a]                --- sort by ordering
+    maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- maximum by ordering
+    minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- minimum by ordering
+
+Folds
+
+    foldl1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from left
+    scanl1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
+    foldr1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from right
+    scanr1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
+    foldl  :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- foldl1 with initial value
+    foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- strict foldl
+    scanl  ::               (b -> a -> b) -> b -> [a] -> [b] --- scanl1 with initial value
+    foldr  :: Foldable t => (a -> b -> b) -> b -> t a -> b   --- foldr1 with initial value
+    scanr  ::               (a -> b -> b) -> b -> [a] -> [b] --- scanr1 with initial value
+
+## Error handling
+
+*Entities in this section are defined in `Prelude`.*
+
+    undefined :: a          --- abort evaluation
+    error :: String -> a    --- abort evaluation with error message
+
+## Fixity declarations in `Prelude`
+
+    infixr 9  !!, .
+    infixr 8  ^, ^^, **
+    infixl 7  *, /, `rem`, `mod`, `div`, `quot`
+    infixl 6  -, +
+    infixr 5  :, ++
+    infix  4  ==, /=, <, >, <=, >=
+    infixr 3  &&
+    infixr 2  ||
+    infixr 0  $
+
+## Type class hierarchy in `Prelude`
+
+    class                              Show a
+    class                              Read a
+    class                              Enum a
+    class                              Eq a
+    class                     Eq a =>  Ord a
+    class                              Num a
+    class                    Num a =>  Fractional a
+    class             Fractional a =>  Floating a
+    class           (Num a, Ord a) =>  Real a
+    class         (Real a, Enum a) =>  Integral a
+    class   (Real a, Fractional a) =>  RealFrac a
+    class (RealFrac a, Floating a) =>  RealFloat a
+
+# Advanced Haskell language constructs
 
 ## What is a Haskell program?
 
@@ -1339,445 +1728,7 @@ is the same as
         ["I","am",x] -> "Hi " ++ x
         _ -> "I don't understand " ++ show xs
 
-## The Haskell Prelude
-
-### Numbers
-
-*Entities in this section are defined in `Prelude`.*
-
-Types
-
-    Int      :: *    --- integer modulo 2^64 (or 2^32)
-    Integer  :: *    --- integer
-    Rational :: *    --- ratio of two integers
-    Float    :: *    --- single precision floating point number
-    Double   :: *    --- double precision floating point number
-
-Type classes
-
-    Integral   =  {Int, Integer}
-    Num        =  {Int, Integer, Rational, Float, Double}    -- + complex numbers, ...
-    Real       =  {Int, Integer, Rational, Float, Double}    -- no complex numbers here
-    Fractional =                {Rational, Float, Double}
-    RealFrac   =                {Rational, Float, Double}    -- no complex numbers here
-    Floating   =                          {Float, Double}
-    RealFloat  =                          {Float, Double}    -- no complex numbers here
-
-Constants
-
-    pi :: Floating a => a    --- π = 3.14..
-
-Conversions
-
-    fromIntegral :: (Num b, Integral a) => a -> b       --- integer to any number type
-    realToFrac   :: (Fractional b, Real a) => a -> b    --- real to fractional
-
-Rounding
-
-    truncate :: (Integral b, RealFrac a) => a -> b    --- round towards zero
-    round    :: (Integral b, RealFrac a) => a -> b    --- round towards nearest
-    ceiling  :: (Integral b, RealFrac a) => a -> b    --- round up
-    floor    :: (Integral b, RealFrac a) => a -> b    --- round down
-
-Operators
-
-    (+)    :: Num a => a -> a -> a    --- addition
-    (*)    :: Num a => a -> a -> a    --- multiplication
-    (-)    :: Num a => a -> a -> a    --- subtraction
-    negate :: Num a => a -> a      --- negation, can be used with prefix operator '-'
-    (/)    :: Fractional a =>  a -> a -> a    --- division
-    (^)    :: (Num a, Integral b) =>        a -> b -> a    --- non-negative exponent
-    (^^)   :: (Integral b, Fractional a) => a -> b -> a    --- integer exponent
-    (**)   :: Floating a =>                 a -> a -> a    --- floating exponent
-
-Functions
-
-    abs   ::      Num a => a -> a       --- absolute value
-    sqrt  :: Floating a => a -> a       --- square root
-    log   :: Floating a => a -> a       --- logarithm to the base of e
-    exp   :: Floating a => a -> a       --- base e exponential function
-    sin   :: Floating a => a -> a       --- sine of argument in radians
-    cos   :: Floating a => a -> a       --- cosine of argument in radians
-    tan   :: Floating a => a -> a       --- tangent of argument in radians
-    asin  :: Floating a => a -> a       --- arcsine
-    acos  :: Floating a => a -> a       --- arccosine
-    atan  :: Floating a => a -> a       --- arctangent
-    sinh  :: Floating a => a -> a       --- hyperbolic sine
-    cosh  :: Floating a => a -> a       --- hyperbolic cosine
-    tanh  :: Floating a => a -> a       --- hyperbolic tangent
-    asinh :: Floating a => a -> a       --- hyperbolic arcsine
-    acosh :: Floating a => a -> a       --- hyperbolic arccosine
-    atanh :: Floating a => a -> a       --- hyperbolic arctangent
-    quot  :: Integral a => a -> a -> a  --- quotient (multiplicative)
-    div   :: Integral a => a -> a -> a  --- quotient (additive)
-    rem   :: Integral a => a -> a -> a  --- remainder (multiplicative)
-    mod   :: Integral a => a -> a -> a  --- remainder (additive)
-    gcd   :: Integral a => a -> a -> a  --- greatest common divisor
-
-### Booleans and comparison
-
-*Entities in this section are defined in `Prelude`.*
-
-Types
-
-    Bool     :: *    --- boolean value
-    Ordering :: *    --- result of comparison
-
-Type classes
-
-    Eq   = {Int, Double, Char, ...}   -- almost everything without functions
-    Ord  = {Int, Double, Char, ...}   -- almost everything without functions
-
-Constructors
-
-    False     :: Bool       --- false
-    True      :: Bool       --- true
-    GT        :: Ordering   --- greater
-    LT        :: Ordering   --- less
-    EQ        :: Ordering   --- equal
-
-Constants
-
-    otherwise :: Bool       --- same as True
-
-Logical connectives
-
-    (&&) :: Bool -> Bool -> Bool    --- logical and
-    (||) :: Bool -> Bool -> Bool    --- logical or
-    not  :: Bool -> Bool            --- logical negation
-
-Operators
-
-    (==) :: Eq a  => a -> a -> Bool    --- equal
-    (/=) :: Eq a  => a -> a -> Bool    --- not equal
-    (<)  :: Ord a => a -> a -> Bool    --- less
-    (>)  :: Ord a => a -> a -> Bool    --- greater
-    (<=) :: Ord a => a -> a -> Bool    --- less or equal
-    (>=) :: Ord a => a -> a -> Bool    --- greater or equal
-
-Functions
-
-    compare :: Ord a => a -> a -> Ordering    --- compare two elements
-    even :: Integral a => a -> Bool     --- True if even
-    odd  :: Integral a => a -> Bool     --- True if odd
-    min  :: Ord a => a -> a -> a        --- minimum of two elements
-    max  :: Ord a => a -> a -> a        --- maximum of two elements
-
-### Tuples
-
-*Entities in this section are defined in `Prelude`.*
-
-Types
-
-    (,)   :: * -> * -> *            --- ordered pair (2-tuple) type constructor
-    (,,)  :: * -> * -> * -> *       --- ordered triple (3-tuple) type constructor
-    (,,,) :: * -> * -> * -> * -> *  --- 4-tuple type constructor
-    ...
-
-Instances
-
-    instance     (Eq a, Eq b) => Eq (a, b)
-    instance   (Ord a, Ord b) => Ord (a, b)
-    instance (Show a, Show b) => Show (a, b)
-    instance (Read a, Read b) => Read (a, b)
-    ...
-
-Constructors
-
-    (,)   :: a -> b -> (a, b)                   --- ordered pair (2-tuple) constructor
-    (,,)  :: a -> b -> c -> (a, b, c)           --- ordered triple (3-tuple) constructor
-    (,,,) :: a -> b -> c -> d -> (a, b, c, d)   --- 4-tuple constructor
-    ...
-
-Functions
-
-    fst :: (a, b) -> a    --- first element
-    snd :: (a, b) -> b    --- second element
-
-### Lists
-
-*Entities in this section are defined in `Prelude` or `Data.List`.*
-
-Notes
-
--   In case of `Foldable t`, replace `t` with the list type constructor.
-    For example,
-
-        concat :: [[a]] -> [a]
-
-Type
-
-    [] :: * -> *    --- list type constructor
-
-Instances
-
-    instance   Eq a => Eq [a]
-    instance  Ord a => Ord [a]
-    instance Show a => Show [a]
-    instance Read a => Read [a]
-
-Constructors
-
-    []      :: [a]                  --- empty list
-    (:)     :: a -> [a] -> [a]      --- insert into left end (beginning) of a list
-
-Generic functions
-
-    (++)    :: [a] -> [a] -> [a]    --- concatenate two lists
-    concat  :: Foldable t => t [a] -> [a]    --- concatenate many lists
-    reverse :: [a] -> [a]           --- reverse order of elements
-    head    :: [a] -> a             --- first element of a list
-    last    :: [a] -> a             --- last element of a list
-    init    :: [a] -> [a]           --- all element but the last
-    tail    :: [a] -> [a]           --- all element but the first
-    inits   :: [a] -> [[a]]         --- iterated init
-    tails   :: [a] -> [[a]]         --- iterated tail
-    repeat  :: a -> [a]             --- repeat element infinitely
-
-Functions with `Int`
-
-    (!!)      :: [a] -> Int -> a          --- element indexed by 0, 1, 2, ...
-    length    :: [a] -> Int               --- length of a list
-    take      :: Int -> [a] -> [a]        --- take first n element of a list
-    drop      :: Int -> [a] -> [a]        --- drop first n element of a list
-    splitAt   :: Int -> [a] -> ([a], [a]) --- take and drop together
-    replicate :: Int -> a -> [a]          --- repeat an element n times
-
-Functions with `Bool`
-
-    null :: Foldable t => t a -> Bool       --- True if there is no element
-    and  :: Foldable t => t Bool -> Bool    --- logical and for more values
-    or   :: Foldable t => t Bool -> Bool    --- logical or for more values
-
-Functions with numbers
-
-    sum     :: (Num a, Foldable t) => t a -> a    --- sum of elements
-    product :: (Num a, Foldable t) => t a -> a    --- product of elements
-
-Functions with tuples
-
-    zip   :: [a] -> [b] -> [(a, b)]    --- pairing of list elements (zipping)
-    unzip :: [(a, b)] -> ([a], [b])    --- unzipping of list of pairs
-
-Functions with `Eq`
-
-    elem       :: (Eq a, Foldable t) => a -> t a -> Bool    --- is the element in the list?
-    delete     :: Eq a => a -> [a] -> [a]     --- delete first occurrence of element
-    nub        :: Eq a => [a] -> [a]          --- delete repeating elements
-    group      :: Eq a => [a] -> [[a]]        --- group equal attached elements
-    isPrefixOf :: Eq a => [a] -> [a] -> Bool  --- True if second list starts with first list
-
-Functions with `Ord`
-
-    minimum :: (Ord a, Foldable t) => t a -> a    --- minimum element
-    maximum :: (Ord a, Foldable t) => t a -> a    --- maximum element
-    insert  :: Ord a => a -> [a] -> [a]           --- insert element into sorted list
-    sort    :: Ord a => [a] -> [a]                --- sort list (increasing order)
-
-### Characters
-
-*Entities in this section are defined in `Prelude` or `Data.Char`.*
-
-Type
-
-    Char :: *    --- unicode characters
-
-Functions
-
-    ord        :: Char -> Int    --- unicode code
-    chr        :: Int -> Char    --- character of given unicode code
-    isSpace    :: Char -> Bool   --- True for ' ', '\t', '\n', ...
-    isDigit    :: Char -> Bool   --- True for '1', '2', ...
-    isAlpha    :: Char -> Bool   --- True for 'a', 'A', ...
-    isUpper    :: Char -> Bool   --- True for 'A', 'B', ...
-    isLower    :: Char -> Bool   --- True for 'a', 'b', ...
-    toUpper    :: Char -> Char   --- toUpper 'a' == 'A'
-    toLower    :: Char -> Char   --- toLower 'A' == 'a'
-    digitToInt :: Char -> Int    --- digitToInt '3' == 3
-    intToDigit :: Int -> Char    --- intToDigit 3 == '3'
-
-### Strings
-
-*Entities in this section are defined in `Prelude`.*
-
-Type
-
-    String :: *         --- type String = [Char]
-
-Type class
-
-    Show  = {...}   -- almost everything without functions
-    Read  = {...}   -- almost everything without functions
-
-Functions
-
-    show    :: Show a => a -> String    --- convert to string
-    read    :: Read a => String -> a
-    lines   :: String -> [String]    --- split string by newlines
-    unlines :: [String] -> String    --- concatenate strings with newlines
-    words   :: String -> [String]    --- split string by spaces
-    unwords :: [String] -> String    --- concatenate strings with whitespaces
-
-### Enumerations
-
-*Entities in this section are defined in `Prelude`.*
-
-Type class
-
-    Enum = {Int, Integer, Rational, Float, Double, Char, Bool}
-
-Dot-dot expressions: lists made by arithmetic sequences
-
-    enumFrom       :: Enum a => a -> [a]             --- difference = 1
-    enumFromTo     :: Enum a => a -> a -> [a]        --- difference = 1, with upper bound
-    enumFromThen   :: Enum a => a -> a -> [a]        --- 
-    enumFromThenTo :: Enum a => a -> a -> a -> [a]   --- with upper bound
-
-Syntax
-
-    [1..]      = enumFrom 1
-    [1..100]   = enumFromTo 1 100
-    [1,3..]    = enumFromThen 1 3
-    [1,3..100] = enumFromThenTo 1 3 100
-
-Conversions
-
-    fromEnum :: Enum a => a -> Int    --- index
-    toEnum   :: Enum a => Int -> a    --- inverse of fromEnum
-
-### Higher-order functions
-
-*Entities in this section are defined in `Prelude` or `Data.Function`.*
-
-    id      :: a -> a                           --- identity function
-    const   :: a -> b -> a                      --- constant function creation
-    ($)     :: (a -> b) -> a -> b               --- function application operator
-    (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
-    curry   :: ((a, b) -> c) -> a -> b -> c     --- untuple function argument
-    uncurry :: (a -> b -> c) -> (a, b) -> c     --- tuple two function arguments
-    flip    :: (a -> b -> c) -> b -> a -> c     --- flip two function arguments
-    on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c     --- binary operator creation
-    until   :: (a -> Bool) -> (a -> a) -> a -> a            --- do-while loop
-
-Functions with lists
-
-    map       :: (a -> b) -> [a] -> [b]         --- elementwise function application
-    iterate   :: (a -> a) -> a -> [a]           --- collect iterated function results
-    filter    :: (a -> Bool) -> [a] -> [a]      --- filter a list by condition
-    partition :: (a -> Bool) -> [a] -> ([a], [a])    --- collect also filtered out elements
-    takeWhile :: (a -> Bool) -> [a] -> [a]      --- longest prefix by condition
-    dropWhile :: (a -> Bool) -> [a] -> [a]      --- elements missed by takeWhile
-    span      :: (a -> Bool) -> [a] -> ([a], [a])    --- takeWhile and dropWhile together
-    any :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if exist element for condition
-    all :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if all element has condition
-
-Generalized functions
-
-    zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]                --- zip with function
-    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]                  --- group by equivalence
-    sortBy    :: (a -> a -> Ordering) -> [a] -> [a]                --- sort by ordering
-    maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- maximum by ordering
-    minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- minimum by ordering
-
-Folds
-
-    foldl1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from left
-    scanl1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
-    foldr1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from right
-    scanr1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
-    foldl  :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- foldl1 with initial value
-    foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- strict foldl
-    scanl  ::               (b -> a -> b) -> b -> [a] -> [b] --- scanl1 with initial value
-    foldr  :: Foldable t => (a -> b -> b) -> b -> t a -> b   --- foldr1 with initial value
-    scanr  ::               (a -> b -> b) -> b -> [a] -> [b] --- scanr1 with initial value
-
-### `Maybe` values
-
-*Entities in this section are defined in `Prelude` or `Data.Maybe`.*
-
-Type
-
-    Maybe :: * -> *          --- list with most one value
-
-Instances
-
-    instance   Eq a => Eq (Maybe a)
-    instance  Ord a => Ord (Maybe a)
-    instance Show a => Show (Maybe a)
-    instance Read a => Read (Maybe a)
-
-Constructors
-
-    Nothing   :: Maybe a                --- corresponds to the empty list
-    Just      :: a -> Maybe a           --- result corresponds to the singleton list
-
-Functions
-
-    isNothing :: Maybe a -> Bool        --- is empty
-    isJust    :: Maybe a -> Bool        --- is non-empty
-    maybe     :: b -> (a -> b) -> Maybe a -> b    --- eliminator for Maybe
-    find      :: Foldable t => (a -> Bool) -> t a -> Maybe a   --- first element by condition
-    lookup    :: Eq a => a -> [(a, b)] -> Maybe b           --- lookup in an association list
-
-### Disjoint union
-
-*Entities in this section are defined in `Prelude`.*
-
-Type
-
-    Either :: * -> * -> *    --- disjunct union
-
-Instances
-
-    instance     (Eq a, Eq b) => Eq (Either a b)
-    instance   (Ord a, Ord b) => Ord (Either a b)
-    instance (Show a, Show b) => Show (Either a b)
-    instance (Read a, Read b) => Read (Either a b)
-
-Constructors
-
-    Left   :: a -> Either a b    --- tag elements of the first type
-    Right  :: b -> Either a b    --- tag elements of the second type
-
-Functions
-
-    either :: (a -> c) -> (b -> c) -> Either a b -> c    --- eliminator for Either
-
-### Error handling
-
-*Entities in this section are defined in `Prelude`.*
-
-    undefined :: a          --- abort evaluation
-    error :: String -> a    --- abort evaluation with error message
-
-### Fixity declarations in `Prelude`
-
-    infixr 9  !!, .
-    infixr 8  ^, ^^, **
-    infixl 7  *, /, `rem`, `mod`, `div`, `quot`
-    infixl 6  -, +
-    infixr 5  :, ++
-    infix  4  ==, /=, <, >, <=, >=
-    infixr 3  &&
-    infixr 2  ||
-    infixr 0  $
-
-### Type class hierarchy in `Prelude`
-
-    class                              Show a
-    class                              Read a
-    class                              Enum a
-    class                              Eq a
-    class                     Eq a =>  Ord a
-    class                              Num a
-    class                    Num a =>  Fractional a
-    class             Fractional a =>  Floating a
-    class           (Num a, Ord a) =>  Real a
-    class         (Real a, Enum a) =>  Integral a
-    class   (Real a, Fractional a) =>  RealFrac a
-    class (RealFrac a, Floating a) =>  RealFloat a
-
-# Advanced Haskell
+# Advanced Haskell declarations
 
 ## Monoids
 
@@ -1946,13 +1897,65 @@ Cons (compared to `Data.ByteString`):
 
 ## Containers
 
+### `Maybe` values
+
+*Entities in this section are defined in `Prelude` or `Data.Maybe`.*
+
+Type
+
+    Maybe :: * -> *          --- list with most one value
+
+Instances
+
+    instance   Eq a => Eq (Maybe a)
+    instance  Ord a => Ord (Maybe a)
+    instance Show a => Show (Maybe a)
+    instance Read a => Read (Maybe a)
+
+Constructors
+
+    Nothing   :: Maybe a                --- corresponds to the empty list
+    Just      :: a -> Maybe a           --- result corresponds to the singleton list
+
+Functions
+
+    isNothing :: Maybe a -> Bool        --- is empty
+    isJust    :: Maybe a -> Bool        --- is non-empty
+    maybe     :: b -> (a -> b) -> Maybe a -> b    --- eliminator for Maybe
+    find      :: Foldable t => (a -> Bool) -> t a -> Maybe a   --- first element by condition
+    lookup    :: Eq a => a -> [(a, b)] -> Maybe b           --- lookup in an association list
+
+### `Either` -- disjoint union
+
+*Entities in this section are defined in `Prelude`.*
+
+Type
+
+    Either :: * -> * -> *    --- disjunct union
+
+Instances
+
+    instance     (Eq a, Eq b) => Eq (Either a b)
+    instance   (Ord a, Ord b) => Ord (Either a b)
+    instance (Show a, Show b) => Show (Either a b)
+    instance (Read a, Read b) => Read (Either a b)
+
+Constructors
+
+    Left   :: a -> Either a b    --- tag elements of the first type
+    Right  :: b -> Either a b    --- tag elements of the second type
+
+Functions
+
+    either :: (a -> c) -> (b -> c) -> Either a b -> c    --- eliminator for Either
+
+### `Set`
+
     Set a       ~      a -> Bool
     Map a b     ~      a -> Maybe b
     Seq a       ~      [a]
 
 <https://hackage.haskell.org/package/containers>
-
-### `Set`
 
 Semantics:
 
