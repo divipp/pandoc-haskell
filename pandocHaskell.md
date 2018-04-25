@@ -3190,6 +3190,35 @@ Useful functions:
         -- (>>=) :: State s a -> (a -> State s b) -> State s b
         State f >>= g = State $ \(f -> (a, s)) -> runState (g a) s
 
+#### `Maybe` monad
+
+`Maybe a` can be seen as a computation which either succeeds and gives
+an `x :: a` or fails.
+
+Implementation:
+
+    instance Functor Maybe where
+        fmap f = maybe Nothing (Just . f)
+
+    instance Applicative Maybe where
+        pure = Maybe
+        mf <*> ma = maybe Nothing (\f -> maybe Nothing (\a -> Just (f a))) mf
+
+    instance Monad Maybe where
+        ma >>= f = maybe Nothing f ma
+
+Tests:
+
+    (+1) <$> Nothing  ==  Nothing
+    (+1) <$> Just 3  ==  Just 3
+    Nothing   <*> Nothing  ==  Nothing
+    Nothing   <*> Just 3   ==  Nothing
+    Just (+1) <*> Nothing  ==  Nothing
+    Just (+1) <*> Just 3   ==  Just 3
+    Nothing  >>=  (\x -> if odd x then Nothing else Just (x + 1)) == Nothing
+    Just 3   >>=  (\x -> if odd x then Nothing else Just (x + 1)) == Nothing
+    Just 4   >>=  (\x -> if odd x then Nothing else Just (x + 1)) == Just 5
+
 ### `do` notation
 
 ### `Traversable`
@@ -3246,6 +3275,114 @@ Usage example:
 
 <!-- -->
     optional :: Alternative f => f a -> f (Maybe a)
+
+## Monad transformers
+
+Goal: mix different side effects
+
+### `StateT s` -- adding state `s` to a computation
+
+#### Interface
+
+    StateT :: * -> (* -> *) -> (* -> *)
+
+    instance Functor m => Functor (StateT s m)
+    instance Monad m => Applicative (StateT s m)
+    instance Monad m => Monad (StateT s m)
+
+    StateT :: (s -> m (a, s)) -> StateT s m a
+    runStateT :: StateT s m a -> s -> m (a, s)
+
+#### Implementation
+
+    newtype StateT s m a
+        = StateT {runStateT :: s -> m (a, s)}
+
+    instance Functor m => Functor (StateT s m) where
+        -- fmap :: (a -> b) -> StateT s m a -> StateT s m b
+        fmap f (StateT g) = StateT $ \s -> first f <$> g s
+
+    instance Monad m => Applicative (StateT s m) where
+        -- pure :: a -> StateT s m a
+        pure a = StateT $ \s -> pure (a, s)
+
+        -- (<*>) :: StateT s m (a -> b) -> StateT s m a -> StateT s m b
+        StateT sf <*> StateT sa = StateT $ \s -> do
+            (f, s) <- sf s
+            (a, s) <- sa s
+            pure (f a, s)
+
+    instance Monad m => Monad (StateT s m) where
+        -- (>>=) :: StateT s m a -> (a -> StateT s m b) -> StateT s m b
+        StateT f >>= g = StateT $ \s -> do
+            (a, s) <- f s
+            runState (g a) s
+
+#### Usage example
+
+    newInt :: Monad m => StateT Int m Int
+    newInt = StateT $ \s -> pure (s, s+1)
+
+    lift :: Monad m => m a -> StateT s m a
+    lift m = StateT $ \s -> do  a <- m
+                                pure (a, s)
+
+    numberLine :: String -> StateT Int IO String
+    numberLine s = do
+        c <- lift $ do
+            putStr $ "Number this line? " ++ s ++ "\n(y/n) "
+            c <- getChar
+            putStr "\n"
+            pure c
+        case c of
+            'y' -> do
+                i <- newInt
+                pure $ show i ++ ". " ++ s
+            _ -> pure s
+
+    test :: IO ()
+    test = do
+        (xs, _) <- flip runStateT 1 $ 
+              traverse numberLine ["first","second","third"]
+        traverse_ putStrLn xs
+
+#### `State` defined with `StateT`
+
+    type State s = StateT s Identity
+
+The definition of the `Identity` monad:
+
+    newtype Identity a = Identity {runIdentity :: a}
+
+    instance Functor Identity where
+        fmap f (Identity a) = Identity (f a)
+    instance Applicative Identity where
+        pure = Identity
+        Identity f <*> Identity a = Identity (f a)
+    instance Monad Identity where
+        Identity a >>= g = g a
+
+### `ExceptT e` -- add exception handling
+
+Remark: The `Maybe` monad is isomorphic to `ExceptT () Identity`.
+
+#### Interface
+
+    ExceptT :: * -> (* -> *) -> (* -> *)
+
+    ExceptT :: m (Either e a) -> ExceptT e m a
+    runExceptT :: ExceptT e m a -> m (Either e a)
+
+    instance Functor m => Functor (ExceptT e m)
+    instance Monad m => Applicative (ExceptT e m)
+    instance Monad m => Monad (ExceptT e m)
+
+#### How to throw an error
+
+    throwError :: Monad m => e -> ExceptT e m a
+    throwError e = ExceptT $ pure $ Left e
+
+The actual `throwError` is more polymorphic (in an ad-hoc way).
 
 ## Testing with `QuickCheck`
 
