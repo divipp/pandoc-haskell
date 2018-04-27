@@ -2,7 +2,7 @@
 .PHONY: all
 all: pandocHaskell.pdf
 
-pandocHaskell.pdf: App.pdf Data.pdf Pandoc.pdf
+pandocHaskell.pdf: App.pdf Data.pdf Pandoc.pdf NumClasses.pdf Classes.pdf
 
 %.pdf: %.md
 	pandoc --from=markdown --to=latex --toc --number-sections --highlight-style=tango --pdf-engine=xelatex $< --indented-code-classes=haskell -o $@

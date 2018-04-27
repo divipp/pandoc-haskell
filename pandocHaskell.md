@@ -745,6 +745,7 @@ Type classes
     RealFloat  =                          {Float, Double}    -- no complex numbers here
 
 Constants
+![Type class hierarchy](NumClasses.pdf){width="40%"}
 
     pi :: Floating a => a    --- π = 3.14..
 
@@ -1106,6 +1107,7 @@ Folds
     class   (Real a, Fractional a) =>  RealFrac a
     class (RealFrac a, Floating a) =>  RealFloat a
 
+![Type class hierarchy](Classes.pdf){width="40%"}
 # Advanced Haskell language constructs
 
 ## What is a Haskell program?

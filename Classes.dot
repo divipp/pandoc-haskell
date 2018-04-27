@@ -1,0 +1,18 @@
+digraph G {
+    node []
+    edge [ dir = back ]
+    Fractional -> Floating
+    Num -> Fractional
+    Eq -> Ord
+    Eq -> Num
+    Enum -> Integral
+    Show -> Num
+    Num -> Real
+    Real -> Integral
+    Ord -> Real
+    RealFrac -> RealFloat
+    Floating -> RealFloat
+    Fractional -> RealFrac
+    Real -> RealFrac
+    Read
+}

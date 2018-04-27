@@ -1,0 +1,14 @@
+
+digraph G {
+	node [ fontsize = 18, fontname = "DejaVu Sans Mono" ]
+	edge [ dir = back ]
+	RealFrac -> RealFloat
+	Floating -> RealFloat
+	Fractional -> RealFrac
+	Fractional -> Floating
+	Num -> Fractional
+	Num -> Real
+	Real -> Integral
+	Real -> RealFrac
+}
+
