@@ -352,11 +352,11 @@ type namespace
 :   comes after keywords `::`, `data`, `type`, `newtype`, `class`,
     `instance`
 
-Example:
+For example, `x` in the following code has two different uses: `x` as a
+type variable and `x` as an (expression) variable.
 
     swap :: (x, y) -> (y, x)     -- (expression) variable: swap; type variables: x, y
     swap (x, y) = (y, x)         -- (expression) variables: swap, x, y
-    -- here  x :: x  (x has type x), but these two x identifiers refers to two different entities
 
 #### Qualified names
 
@@ -426,8 +426,8 @@ Note that prefix application is left-associative:
 
 Negation is the only prefix operation:
 
-    - 1         -- negated 1
-    -1          -- the same negated 1 (not a literal)
+    -1          -- negated 1 (not a literal)
+    - 1         -- the same negated 1; whitespace does not matter
     -x          -- negated x
 
 Negation `-` is parsed as if it was `0-` :
@@ -724,44 +724,47 @@ Each type annotation should have a corresponding definition.
 
 ## Numbers
 
-*Entities in this section are defined in `Prelude`.*
+*Entities in this section are defined in `Prelude` and `Data.Complex`.*
 
-Types
+#### Types {#types-1 .unnumbered}
 
-    Int      :: *    --- integer modulo 2^64 (or 2^32)
-    Integer  :: *    --- integer
-    Rational :: *    --- ratio of two integers
-    Float    :: *    --- single precision floating point number
-    Double   :: *    --- double precision floating point number
+    Int             --- integer modulo 2^64 (or 2^32)
+    Integer         --- integer
+    Rational        --- ratio of two integers
+    Float           --- single precision floating point number
+    Double          --- double precision floating point number
+    Complex Float   --- complex numbers built on Float
+    Complex Double  --- complex numbers built on Double
 
-Type classes
+#### Type classes {#type-classes .unnumbered}
 
-    Integral   =  {Int, Integer}
-    Num        =  {Int, Integer, Rational, Float, Double}    -- + complex numbers, ...
-    Real       =  {Int, Integer, Rational, Float, Double}    -- no complex numbers here
-    Fractional =                {Rational, Float, Double}
-    RealFrac   =                {Rational, Float, Double}    -- no complex numbers here
-    Floating   =                          {Float, Double}
-    RealFloat  =                          {Float, Double}    -- no complex numbers here
+    Num        =  {Int, Integer, Rational, Float, Double, Complex Float, Complex Double, ...}
+    Real       =  {Int, Integer, Rational, Float, Double, ...}
+    Integral   =  {Int, Integer, ...}
+    Fractional =                {Rational, Float, Double, Complex Float, Complex Double, ...}
+    RealFrac   =                {Rational, Float, Double, ...}
+    Floating   =                          {Float, Double, Complex Float, Complex Double, ...}
+    RealFloat  =                          {Float, Double, ...}
 
-Constants
 ![Type class hierarchy](NumClasses.pdf){width="40%"}
+
+#### Constants {#constants .unnumbered}
 
     pi :: Floating a => a    --- π = 3.14..
 
-Conversions
+#### Conversions {#conversions .unnumbered}
 
     fromIntegral :: (Num b, Integral a) => a -> b       --- integer to any number type
     realToFrac   :: (Fractional b, Real a) => a -> b    --- real to fractional
 
-Rounding
+#### Rounding {#rounding .unnumbered}
 
     truncate :: (Integral b, RealFrac a) => a -> b    --- round towards zero
     round    :: (Integral b, RealFrac a) => a -> b    --- round towards nearest
     ceiling  :: (Integral b, RealFrac a) => a -> b    --- round up
     floor    :: (Integral b, RealFrac a) => a -> b    --- round down
 
-Operators
+#### Operators {#operators .unnumbered}
 
     (+)    :: Num a => a -> a -> a    --- addition
     (*)    :: Num a => a -> a -> a    --- multiplication
@@ -772,7 +775,7 @@ Operators
     (^^)   :: (Integral b, Fractional a) => a -> b -> a    --- integer exponent
     (**)   :: Floating a =>                 a -> a -> a    --- floating exponent
 
-Functions
+#### Functions {#functions .unnumbered}
 
     abs   ::      Num a => a -> a       --- absolute value
     sqrt  :: Floating a => a -> a       --- square root
@@ -800,17 +803,19 @@ Functions
 
 *Entities in this section are defined in `Prelude`.*
 
-Types
+#### Types {#types-2 .unnumbered}
 
-    Bool     :: *    --- boolean value
-    Ordering :: *    --- result of comparison
+    Bool         --- boolean value
+    Ordering     --- result of comparison
 
-Type classes
+#### Type classes {#type-classes-1 .unnumbered}
 
-    Eq   = {Int, Double, Char, ...}   -- almost everything without functions
-    Ord  = {Int, Double, Char, ...}   -- almost everything without functions
+There are `Eq` and `Ord` instances for almost every type but functions.
 
-Constructors
+    Eq   = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
+    Ord  = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
+
+#### Constructors {#constructors .unnumbered}
 
     False     :: Bool       --- false
     True      :: Bool       --- true
@@ -818,17 +823,17 @@ Constructors
     LT        :: Ordering   --- less
     EQ        :: Ordering   --- equal
 
-Constants
+#### Constants {#constants-1 .unnumbered}
 
     otherwise :: Bool       --- same as True
 
-Logical connectives
+#### Logical connectives {#logical-connectives .unnumbered}
 
     (&&) :: Bool -> Bool -> Bool    --- logical and
     (||) :: Bool -> Bool -> Bool    --- logical or
     not  :: Bool -> Bool            --- logical negation
 
-Operators
+#### Operators {#operators-1 .unnumbered}
 
     (==) :: Eq a  => a -> a -> Bool    --- equal
     (/=) :: Eq a  => a -> a -> Bool    --- not equal
@@ -837,7 +842,7 @@ Operators
     (<=) :: Ord a => a -> a -> Bool    --- less or equal
     (>=) :: Ord a => a -> a -> Bool    --- greater or equal
 
-Functions
+#### Functions {#functions-1 .unnumbered}
 
     compare :: Ord a => a -> a -> Ordering    --- compare two elements
     even :: Integral a => a -> Bool     --- True if even
@@ -849,29 +854,21 @@ Functions
 
 *Entities in this section are defined in `Prelude`.*
 
-Types
+#### Types (`a`, `b`, `c` and `d` are arbitrary types) {#types-a-b-c-and-d-are-arbitrary-types .unnumbered}
 
-    (,)   :: * -> * -> *            --- ordered pair (2-tuple) type constructor
-    (,,)  :: * -> * -> * -> *       --- ordered triple (3-tuple) type constructor
-    (,,,) :: * -> * -> * -> * -> *  --- 4-tuple type constructor
+    (a, b)            --- ordered pair (2-tuple)
+    (a, b, c)         --- ordered triple (3-tuple)
+    (a, b, c, d)      --- 4-tuple
     ...
 
-Instances
-
-    instance     (Eq a, Eq b) => Eq (a, b)
-    instance   (Ord a, Ord b) => Ord (a, b)
-    instance (Show a, Show b) => Show (a, b)
-    instance (Read a, Read b) => Read (a, b)
-    ...
-
-Constructors
+#### Constructors {#constructors-1 .unnumbered}
 
     (,)   :: a -> b -> (a, b)                   --- ordered pair (2-tuple) constructor
     (,,)  :: a -> b -> c -> (a, b, c)           --- ordered triple (3-tuple) constructor
     (,,,) :: a -> b -> c -> d -> (a, b, c, d)   --- 4-tuple constructor
     ...
 
-Functions
+#### Functions {#functions-2 .unnumbered}
 
     fst :: (a, b) -> a    --- first element
     snd :: (a, b) -> b    --- second element
@@ -887,23 +884,16 @@ Notes
 
         concat :: [[a]] -> [a]
 
-Type
+#### Type {#type .unnumbered}
 
-    [] :: * -> *    --- list type constructor
+    [a]     --- a-list (a is an arbitrary type)
 
-Instances
-
-    instance   Eq a => Eq [a]
-    instance  Ord a => Ord [a]
-    instance Show a => Show [a]
-    instance Read a => Read [a]
-
-Constructors
+#### Constructors {#constructors-2 .unnumbered}
 
     []      :: [a]                  --- empty list
     (:)     :: a -> [a] -> [a]      --- insert into left end (beginning) of a list
 
-Generic functions
+#### Generic functions {#generic-functions .unnumbered}
 
     (++)    :: [a] -> [a] -> [a]    --- concatenate two lists
     concat  :: Foldable t => t [a] -> [a]    --- concatenate many lists
@@ -916,7 +906,7 @@ Generic functions
     tails   :: [a] -> [[a]]         --- iterated tail
     repeat  :: a -> [a]             --- repeat element infinitely
 
-Functions with `Int`
+#### Functions with `Int`{.unnumbered}
 
     (!!)      :: [a] -> Int -> a          --- element indexed by 0, 1, 2, ...
     length    :: [a] -> Int               --- length of a list
@@ -925,23 +915,23 @@ Functions with `Int`
     splitAt   :: Int -> [a] -> ([a], [a]) --- take and drop together
     replicate :: Int -> a -> [a]          --- repeat an element n times
 
-Functions with `Bool`
+#### Functions with `Bool`{.unnumbered}
 
     null :: Foldable t => t a -> Bool       --- True if there is no element
     and  :: Foldable t => t Bool -> Bool    --- logical and for more values
     or   :: Foldable t => t Bool -> Bool    --- logical or for more values
 
-Functions with numbers
+#### Functions with numbers {#functions-with-numbers .unnumbered}
 
     sum     :: (Num a, Foldable t) => t a -> a    --- sum of elements
     product :: (Num a, Foldable t) => t a -> a    --- product of elements
 
-Functions with tuples
+#### Functions with tuples {#functions-with-tuples .unnumbered}
 
     zip   :: [a] -> [b] -> [(a, b)]    --- pairing of list elements (zipping)
     unzip :: [(a, b)] -> ([a], [b])    --- unzipping of list of pairs
 
-Functions with `Eq`
+#### Functions with `Eq`{.unnumbered}
 
     elem       :: (Eq a, Foldable t) => a -> t a -> Bool    --- is the element in the list?
     delete     :: Eq a => a -> [a] -> [a]     --- delete first occurrence of element
@@ -949,7 +939,7 @@ Functions with `Eq`
     group      :: Eq a => [a] -> [[a]]        --- group equal attached elements
     isPrefixOf :: Eq a => [a] -> [a] -> Bool  --- True if second list starts with first list
 
-Functions with `Ord`
+#### Functions with `Ord`{.unnumbered}
 
     minimum :: (Ord a, Foldable t) => t a -> a    --- minimum element
     maximum :: (Ord a, Foldable t) => t a -> a    --- maximum element
@@ -960,11 +950,11 @@ Functions with `Ord`
 
 *Entities in this section are defined in `Prelude` or `Data.Char`.*
 
-Type
+#### Type {#type-1 .unnumbered}
 
-    Char :: *    --- unicode characters
+    Char    --- unicode characters
 
-Functions
+#### Functions {#functions-3 .unnumbered}
 
     ord        :: Char -> Int    --- unicode code
     chr        :: Int -> Char    --- character of given unicode code
@@ -982,16 +972,19 @@ Functions
 
 *Entities in this section are defined in `Prelude`.*
 
-Type
+#### Type {#type-2 .unnumbered}
 
-    String :: *         --- type String = [Char]
+    String         --- type String = [Char]
 
-Type class
+#### Type class {#type-class .unnumbered}
 
-    Show  = {...}   -- almost everything without functions
-    Read  = {...}   -- almost everything without functions
+There are `Show` and `Read` instances for almost every type but
+functions.
 
-Functions
+    Show  = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
+    Read  = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
+
+#### Functions {#functions-4 .unnumbered}
 
     show    :: Show a => a -> String    --- convert to string
     read    :: Read a => String -> a
@@ -1004,25 +997,25 @@ Functions
 
 *Entities in this section are defined in `Prelude`.*
 
-Type class
+#### Type class {#type-class-1 .unnumbered}
 
-    Enum = {Int, Integer, Rational, Float, Double, Char, Bool}
+    Enum = {Int, Integer, Rational, Float, Double, Char, Bool, ...}
 
-Dot-dot expressions: lists made by arithmetic sequences
+#### Dot-dot expressions: lists made by arithmetic sequences {#dot-dot-expressions-lists-made-by-arithmetic-sequences .unnumbered}
 
     enumFrom       :: Enum a => a -> [a]             --- difference = 1
     enumFromTo     :: Enum a => a -> a -> [a]        --- difference = 1, with upper bound
     enumFromThen   :: Enum a => a -> a -> [a]        --- 
     enumFromThenTo :: Enum a => a -> a -> a -> [a]   --- with upper bound
 
-Syntax
+#### Syntax {#syntax .unnumbered}
 
     [1..]      = enumFrom 1
     [1..100]   = enumFromTo 1 100
     [1,3..]    = enumFromThen 1 3
     [1,3..100] = enumFromThenTo 1 3 100
 
-Conversions
+#### Conversions {#conversions-1 .unnumbered}
 
     fromEnum :: Enum a => a -> Int    --- index
     toEnum   :: Enum a => Int -> a    --- inverse of fromEnum
@@ -1041,7 +1034,7 @@ Conversions
     on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c     --- binary operator creation
     until   :: (a -> Bool) -> (a -> a) -> a -> a            --- do-while loop
 
-Functions with lists
+#### Functions with lists {#functions-with-lists .unnumbered}
 
     map       :: (a -> b) -> [a] -> [b]         --- elementwise function application
     iterate   :: (a -> a) -> a -> [a]           --- collect iterated function results
@@ -1053,7 +1046,7 @@ Functions with lists
     any :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if exist element for condition
     all :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if all element has condition
 
-Generalized functions
+#### Generalized functions {#generalized-functions .unnumbered}
 
     zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]                --- zip with function
     groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]                  --- group by equivalence
@@ -1061,7 +1054,7 @@ Generalized functions
     maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- maximum by ordering
     minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- minimum by ordering
 
-Folds
+#### Folds {#folds .unnumbered}
 
     foldl1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from left
     scanl1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
@@ -1108,6 +1101,10 @@ Folds
     class (RealFrac a, Floating a) =>  RealFloat a
 
 ![Type class hierarchy](Classes.pdf){width="40%"}
+
+Explanation: `Eq` contains `Ord`, i.e. if there is an `Ord` instance for
+type *T*, then there is an `Eq` instance for *T*.
+
 # Advanced Haskell language constructs
 
 ## What is a Haskell program?
@@ -1142,7 +1139,8 @@ Knowing phases of execution helps to understand error messages.
 2.  *parsing*
     -   recognize language constructs
 3.  loading imports
-    -   do phases 1-8 for imported modules
+    -   (recursively) do these phases until code generation for all
+        imported modules
 4.  *scope checking*
     -   determine the defining location of each identifier
 5.  reordering
@@ -1151,7 +1149,6 @@ Knowing phases of execution helps to understand error messages.
         apart)
 6.  *type inference*
     -   check validity of expressions and declarations
-        -   solve constraints
 7.  *optimization*
     -   transform definitions to make execution more time/space
         efficient
