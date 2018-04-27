@@ -1,6 +1,6 @@
 ---
 author:
-- '*draft version 7*'
+- '*draft version 8*'
 classoption: oneside
 documentclass: book
 geometry: 'margin=1.2in'
