@@ -1030,7 +1030,7 @@ functions.
     (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
     curry   :: ((a, b) -> c) -> a -> b -> c     --- untuple function argument
     uncurry :: (a -> b -> c) -> (a, b) -> c     --- tuple two function arguments
-    flip    :: (a -> b -> c) -> b -> a -> c     --- flip two function arguments
+    flip    :: (a -> b -> c) -> b -> a -> c     --- flip (**) 3 4 == 64.0
     on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c     --- binary operator creation
     until   :: (a -> Bool) -> (a -> a) -> a -> a            --- do-while loop
 
