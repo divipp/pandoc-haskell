@@ -1026,13 +1026,13 @@ functions.
 
     id      :: a -> a                           --- id "anything" == "anything"
     const   :: a -> b -> a                      --- const 3 "True" == 3
-    ($)     :: (a -> b) -> a -> b               --- function application operator
-    (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
-    curry   :: ((a, b) -> c) -> a -> b -> c     --- untuple function argument
-    uncurry :: (a -> b -> c) -> (a, b) -> c     --- tuple two function arguments
+    ($)     :: (a -> b) -> a -> b               --- (even $ 1+2) == False
+    (.)     :: (b -> c) -> (a -> b) -> a -> c   --- (even . (+1)) 2 == False
+    uncurry :: (a -> b -> c) -> (a, b) -> c     --- uncurry mod (5,2) == 1
+    curry   :: ((a, b) -> c) -> a -> b -> c     --- inverse of uncurry
     flip    :: (a -> b -> c) -> b -> a -> c     --- flip (**) 3 4 == 64.0
-    on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c     --- binary operator creation
-    until   :: (a -> Bool) -> (a -> a) -> a -> a            --- do-while loop
+    on      :: (b -> b -> c) -> (a -> b) -> a -> a -> c   --- ((==) 'on' even) 2 10 == True
+    until   :: (a -> Bool) -> (a -> a) -> a -> a          --- until (> 10) (+ 1) 3 == 11
 
 #### Functions with lists {#functions-with-lists .unnumbered}
 
