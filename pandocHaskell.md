@@ -1025,7 +1025,7 @@ functions.
 *Entities in this section are defined in `Prelude` or `Data.Function`.*
 
     id      :: a -> a                           --- id "anything" == "anything"
-    const   :: a -> b -> a                      --- constant function creation
+    const   :: a -> b -> a                      --- const 3 "True" == 3
     ($)     :: (a -> b) -> a -> b               --- function application operator
     (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
     curry   :: ((a, b) -> c) -> a -> b -> c     --- untuple function argument
