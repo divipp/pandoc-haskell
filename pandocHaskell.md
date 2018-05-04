@@ -1024,7 +1024,7 @@ functions.
 
 *Entities in this section are defined in `Prelude` or `Data.Function`.*
 
-    id      :: a -> a                           --- identity function
+    id      :: a -> a                           --- id "anything" == "anything"
     const   :: a -> b -> a                      --- constant function creation
     ($)     :: (a -> b) -> a -> b               --- function application operator
     (.)     :: (b -> c) -> (a -> b) -> a -> c   --- function composition
