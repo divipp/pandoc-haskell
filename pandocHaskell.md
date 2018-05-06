@@ -1036,31 +1036,31 @@ functions.
 
 #### Functions with lists {#functions-with-lists .unnumbered}
 
-    map       :: (a -> b) -> [a] -> [b]         --- elementwise function application
-    iterate   :: (a -> a) -> a -> [a]           --- collect iterated function results
-    filter    :: (a -> Bool) -> [a] -> [a]      --- filter a list by condition
-    partition :: (a -> Bool) -> [a] -> ([a], [a])    --- collect also filtered out elements
-    takeWhile :: (a -> Bool) -> [a] -> [a]      --- longest prefix by condition
-    dropWhile :: (a -> Bool) -> [a] -> [a]      --- elements missed by takeWhile
-    span      :: (a -> Bool) -> [a] -> ([a], [a])    --- takeWhile and dropWhile together
-    any :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if exist element for condition
-    all :: Foldable t => (a -> Bool) -> t a -> Bool  --- True if all element has condition
+    map       :: (a -> b) -> [a] -> [b]         --- map (^2) [1..4] == [1,4,9,16]
+    iterate   :: (a -> a) -> a -> [a]           --- iterate (+2) 2 == [2,4..]
+    filter    :: (a -> Bool) -> [a] -> [a]      --- filter (<3) [1..100] == [1,2]
+    partition :: (a -> Bool) -> [a] -> ([a], [a])    --- partition odd [1..5] == ([1,3,5],[2,4])
+    takeWhile :: (a -> Bool) -> [a] -> [a]      --- takeWhile (<3) (cycle [1..5]) == [1,2]
+    dropWhile :: (a -> Bool) -> [a] -> [a]      --- dropWhile (<3) [1..5] == [3,4,5]
+    span      :: (a -> Bool) -> [a] -> ([a], [a])    --- span (<3) [1..5] == ([1,2],[3,4,5])
+    any :: Foldable t => (a -> Bool) -> t a -> Bool  --- any (<3) [1,2,4] == True
+    all :: Foldable t => (a -> Bool) -> t a -> Bool  --- all (<3) [1,2,4] == False
 
 #### Generalized functions {#generalized-functions .unnumbered}
 
-    zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]                --- zip with function
-    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]                  --- group by equivalence
-    sortBy    :: (a -> a -> Ordering) -> [a] -> [a]                --- sort by ordering
+    zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]      --- zipWith (+) [2,3] [2,2] == [4,5]
+    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]        --- groupBy (\x y -> odd x && odd y) [1,3,4,5]
+    sortBy    :: (a -> a -> Ordering) -> [a] -> [a]      --- sort by ordering
     maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- maximum by ordering
     minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- minimum by ordering
 
 #### Folds {#folds .unnumbered}
 
-    foldl1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from left
-    scanl1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
+    foldl1 :: Foldable t => (a -> a -> a) -> t a -> a        --- foldl1 (**) [2,3,4] == 4096.0
+    scanl1 ::               (a -> a -> a) -> [a] -> [a]      --- scanl1 (^) [2,3,4] == [2,8,4096]
     foldr1 :: Foldable t => (a -> a -> a) -> t a -> a        --- fold from right
     scanr1 ::               (a -> a -> a) -> [a] -> [a]      ---   with intermediate values
-    foldl  :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- foldl1 with initial value
+    foldl  :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- foldl (+) 5 [2,3,4] == 14
     foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b   --- strict foldl
     scanl  ::               (b -> a -> b) -> b -> [a] -> [b] --- scanl1 with initial value
     foldr  :: Foldable t => (a -> b -> b) -> b -> t a -> b   --- foldr1 with initial value
