@@ -1345,7 +1345,7 @@ Partial application of type synonyms is not allowed:
 
 ### `data` -- algebraic data type definition
 
-`data` defines a new *algebraic data type*, which consists of a type
+`data` defines a new *algebraic data type (ADT)*, which consists of a type
 constructor and zero or more (expression) constructors.
 
 For example,
