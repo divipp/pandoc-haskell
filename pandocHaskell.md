@@ -1049,7 +1049,7 @@ functions.
 #### Generalized functions {#generalized-functions .unnumbered}
 
     zipWith   :: (a -> b -> c) -> [a] -> [b] -> [c]      --- zipWith (+) [2,3] [2,2] == [4,5]
-    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]        --- groupBy (\x y -> odd x && odd y) [1,3,4,5]
+    groupBy   :: (a -> a -> Bool) -> [a] -> [[a]]        --- groupBy ((&&) `on` odd) [1,3,4,5]
     sortBy    :: (a -> a -> Ordering) -> [a] -> [a]      --- sort by ordering
     maximumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- maximum by ordering
     minimumBy :: Foldable t => (a -> a -> Ordering) -> t a -> a    --- minimum by ordering
@@ -1086,6 +1086,8 @@ functions.
     infixr 0  $
 
 ## Type class hierarchy in `Prelude`
+
+Type classes are discussed in [`class` definitions](#class-definitions).
 
     class                              Show a
     class                              Read a
@@ -1438,7 +1440,7 @@ Pandoc examples:
 
 `Citation`
 
-### `newtype` definition
+### `newtype` definitions
 
 Until the end of type checking phase, `newtype` is similar to `data`
 with the following constraints:
@@ -1468,7 +1470,7 @@ Advantages of `newtype` over `data`:
 -   better runtime performance
 -   see `GeneralizedNewtypeDeriving`
 
-### `class` definition
+### `class` definitions
 
 Example:
 
@@ -1509,7 +1511,7 @@ Default implementation of methods:
 -   the constraint `Ord a` implies `Eq a`, so one can simplify the
     constraint `(Eq a, Ord a)` to `Ord a`
 
-### `instance` definition
+### `instance` definitions
 
 Examples:
 
