@@ -588,6 +588,13 @@ whole expression at the same time:
               -- variable @ pattern
     v@(_:t)   -- matches non-empty lists, binds v to the whole list and t to the the tail
 
+Example:
+
+    f v@(_:t) = t ++ v
+
+    f [1,2,3] == [2,3,1,2,3]
+
+
 ## Types
 
 ### Simple type
