@@ -7,6 +7,10 @@ geometry: 'margin=1.2in'
 monofont: DejaVu Sans Mono
 title: 'Pandoc''s Haskell'
 urlcolor: blue
+header-includes: |
+    \usepackage{color}
+    \newcommand{\blue}[1]{{\color{blue}{#1}}}
+    \newcommand{\red}[1]{{\color{red}{#1}}}
 ---
 
 \defaultfontfeatures{Scale=MatchLowercase}
@@ -294,6 +298,7 @@ syntax](#negation-syntax).
     "multi-line \
        \string"             -- same as "multi-line string"
 
+
 ### Identifiers
 
 #### Operator identifiers
@@ -313,10 +318,9 @@ alphanumeric identifiers:
 
 Examples:
 
-    f' :: Int -> [Int]
     f' x = x + 1 : x * 2 : []
     -- operators: +, :, *
-    -- alphanumeric identifiers: f', x, Int
+    -- alphanumeric identifiers: f', x
 
 The distinction between operators and alphanumeric identifiers matters
 only syntactically, see [application syntax](#application-syntax).
@@ -333,30 +337,14 @@ Lexically, *function names* and *function parameters* are variables.
 
 Examples:
 
-    f' :: Int -> [Int]
     f' x = x + 1 : x * 2 : []
     -- variables: f', x, +, *
-    -- constructors: Int, :
+    -- constructors: :
 
 The distinction between variables and constructors matters in pattern
 matching (in expressions) and quantification (in types).
 
-#### Expression vs. type namespace
 
-There are two namespaces in Haskell:
-
-expression namespace
-:   is the default and also comes after keyword `where`
-
-type namespace
-:   comes after keywords `::`, `data`, `type`, `newtype`, `class`,
-    `instance`
-
-For example, `x` in the following code has two different uses: `x` as a
-type variable and `x` as an (expression) variable.
-
-    swap :: (x, y) -> (y, x)     -- (expression) variable: swap; type variables: x, y
-    swap (x, y) = (y, x)         -- (expression) variables: swap, x, y
 
 #### Qualified names
 
@@ -383,6 +371,24 @@ syntax](#tuple-and-list-syntax) and [compound types](#compound-type):
     ...
 
 ## Expressions
+
+### Expressions vs. types
+
+In Haskell source code, every word can marked as an 'expression' or a 'type'.
+
+For example, expressions are colored red and types are colored blue here:
+
+\texttt{\red{splitAt} :: \blue{Int -> [a] -> ([a], [a])}}\
+\texttt{\red{splitAt i xs = (take (i} :: \blue{Int}\red{) xs, drop i xs)}}
+
+The general rule is that types comes after `::` until the end of the next language construct.
+
+`::` can be pronounced as 'is a', so `i :: Int` can be pronounced as 'i is an int'.
+
+There are separate namespaces for types and expressions,
+which means the red `i` and the blue `i` above are different variables.
+
+
 
 ### Application syntax
 
@@ -1116,204 +1122,6 @@ type *T*, then there is an `Eq` instance for *T*.
 
 # Advanced Haskell language constructs
 
-## What is a Haskell program?
-
-This subsection contains the essential vocabulary which is needed to
-speak about Haskell programs.
-
-### Organization of Haskell source code
-
-Haskell module:
-:   Group of Haskell definitions which are stored in a text file like
-    `Example.hs`
-
-Haskell library:
-:   Haskell modules in hierarchical file structure
-
-Haskell program (or executable):
-:   Haskell modules with a main module
-
-Haskell package:
-:   Haskell library and/or a set of Haskell executables
-
-### Phases of execution of Haskell programs
-
-Knowing phases of execution helps to understand error messages.
-
-1.  *lexical analysis*
-    -   recognize the beginning and end of "words" and punctuation
-        (these are called *tokens*)
-    -   recognize layout (whitespace matters in Haskell)
-    -   skip whitespace and comments
-2.  *parsing*
-    -   recognize language constructs
-3.  loading imports
-    -   (recursively) do these phases until code generation for all
-        imported modules
-4.  *scope checking*
-    -   determine the defining location of each identifier
-5.  reordering
-    -   recognize hidden parentheses
-    -   connect function declaration with function definition (can be
-        apart)
-6.  *type inference*
-    -   check validity of expressions and declarations
-7.  *optimization*
-    -   transform definitions to make execution more time/space
-        efficient
-8.  *code generation*
-    -   transform definitions to machine code (maybe for an abstract
-        machine)
-9.  *linking*
-    -   compose code with code generated for imported modules
-    -   compose code with RTS (*Runtime System*: code for builtin
-        definitions, garbage collection, scheduling and profiling)
-10. *execution* (called *runtime* when used as an adjective)
-    -   execute the linked code
-
-Phases 1-9 are called *compilation* (or *compilation time* when used as
-an adjective).
-
-Compilation is done by the compiler, execution is done by the operating
-system.
-
-### Possible programmer errors
-
-Haskell programmers may cause the following kind of errors:
-
-Compile time / static error:
-:   error recognized during phases 1-6 by the compiler\
-    (all compile time errors are caught until the end of type checking)
-
-Runtime error:
-:   error during execution, recognized by the runtime system\
-    (all errors are caught by the runtime system and not by the
-    operating system)
-
-Semantic error:
-:   error during execution which is not recognized by the runtime
-    system\
-    (may be recognized by testing)
-
-Performance issue:
-:   runtime resource usage is not acceptable / not reasonable\
-    (may be recognized by profiling and benchmarks)
-
-### Cached results
-
-Recompilation of modules can be avoided by caching the results of the
-compilation phases.
-
-Executable file:
-:   cached result of linking
-
-Object file:
-:   cached result of code generation, needed for linking
-
-Interface file:
-:   cached result of type checking, needed in phases 3-7 for modules
-    importing this one
-
-## Kinds
-
-Kinds are the types of type expressions.
-
-### Kinds of type constructors
-
-    Int  :: *               -- Int is a type
-    Char :: *               -- Char is a type
-    Bool :: *               -- Bool is a type
-    []   :: * -> *          -- list is a function from types to types
-                            --  or: list is type parameterized by a type
-
-<!-- -->
-    (,)   :: * -> * -> *            -- same as  * -> (* -> *)
-    (,,)  :: * -> * -> * -> *       -- same as  * -> (* -> (* -> *))
-    (,,,) :: * -> * -> * -> * -> *
-    ...
-
-<!-- -->
-    (->) :: * -> * -> *     -- almost, see later
-
-In `ghci`:
-
-    Prelude> :k Int
-    Int :: *
-
-### Type application
-
-Type application has the same syntax as function application.
-
-Partial application is possible:
-
-    (,,)                 :: * -> * -> * -> *    -- no application
-    (,,) Int             :: * -> * -> *         -- partial application
-    (,,) Int Char        :: * -> *              -- partial application
-    (,,) Int Char Bool   :: *                   -- full application; same as (Int, Char, Bool)
-
-(Partial application of type synonyms is not allowed, see [type
-sysnonyms](#type-type-synonym-definition).)
-
-Kind mismatch is rejected by the compiler:
-
-    (,) Maybe           -- *wrong*, kind mismatch at application
-    (,) Int Char Bool   -- *wrong*, overapplication of type constructor (,)
-    Int Char            -- *wrong*, overapplication of type constructor Int
-
-### Kind of constraints
-
-    Num                 :: * -> Constraint
-    Num Int             :: Constraint
-    Num a               :: Constraint           -- if a :: *
-    (Num Int, Eq Int)   :: Constraint
-
-<!-- -->
-    Num a => a          :: *      -- as if  (=>) :: Constraint -> * -> *
-
-### Type expression vs. type vs. type constructor
-
-**Type expression** or type-level expression is an expression at the
-type level, like `Maybe Int`.
-
-**Type** is a type expression with kind `*`.
-
-Sometimes 'type' is said instead of 'type expression' which may cause
-confusion.
-
-Every expression should have a *type*. For example, this hole cannot be
-filled: `_ :: Maybe`.
-
-**Type constructor** is a type expression defined by `data` and
-`newtype`.\
-There are some built-in type constructors too: `(->)`, `[]`, `()`,
-`(,)`, `(,,)`, ...
-
-Examples:
-
-                  -- type expression?    type?    type constructor?
-    Int           --  yes                 yes      yes
-    Maybe Int     --  yes                 yes      no
-    String        --  yes                 yes      no
-    Maybe         --  yes                 no       yes
-    (,,) Int      --  yes                 no       no
-
-### Other kinds
-
-Kinds which are beyond the scope of this tutorial:
-
--   kind variables
--   types lifted to the kind level, for example the kind of type-level
-    natural numbers
--   The kind of a type may be other than `*`. The kind of a type `T`
-    encodes the calling convention of expressions of type `T`; `*` is
-    the kind of *lifted* types (whose values are accessed by a pointer).
-
-    Remember this when you ask the kind of the function type
-    constructor:
-
-        > :k (->)
-        (->) :: TYPE q -> TYPE r -> *
-
 ## Declarations (2)
 
 ### Fixity declaration
@@ -1553,6 +1361,104 @@ constraints:
     Eq ((Bool,Bool),[Bool])
     -- ...
 
+## What is a Haskell program?
+
+This subsection contains the essential vocabulary which is needed to
+speak about Haskell programs.
+
+### Organization of Haskell source code
+
+Haskell module:
+:   Group of Haskell definitions which are stored in a text file like
+    `Example.hs`
+
+Haskell library:
+:   Haskell modules in hierarchical file structure
+
+Haskell program (or executable):
+:   Haskell modules with a main module
+
+Haskell package:
+:   Haskell library and/or a set of Haskell executables
+
+### Phases of execution of Haskell programs
+
+Knowing phases of execution helps to understand error messages.
+
+1.  *lexical analysis*
+    -   recognize the beginning and end of "words" and punctuation
+        (these are called *tokens*)
+    -   recognize layout (whitespace matters in Haskell)
+    -   skip whitespace and comments
+2.  *parsing*
+    -   recognize language constructs
+3.  loading imports
+    -   (recursively) do these phases until code generation for all
+        imported modules
+4.  *scope checking*
+    -   determine the defining location of each identifier
+5.  reordering
+    -   recognize hidden parentheses
+    -   connect function declaration with function definition (can be
+        apart)
+6.  *type inference*
+    -   check validity of expressions and declarations
+7.  *optimization*
+    -   transform definitions to make execution more time/space
+        efficient
+8.  *code generation*
+    -   transform definitions to machine code (maybe for an abstract
+        machine)
+9.  *linking*
+    -   compose code with code generated for imported modules
+    -   compose code with RTS (*Runtime System*: code for builtin
+        definitions, garbage collection, scheduling and profiling)
+10. *execution* (called *runtime* when used as an adjective)
+    -   execute the linked code
+
+Phases 1-9 are called *compilation* (or *compilation time* when used as
+an adjective).
+
+Compilation is done by the compiler, execution is done by the operating
+system.
+
+### Possible programmer errors
+
+Haskell programmers may cause the following kind of errors:
+
+Compile time / static error:
+:   error recognized during phases 1-6 by the compiler\
+    (all compile time errors are caught until the end of type checking)
+
+Runtime error:
+:   error during execution, recognized by the runtime system\
+    (all errors are caught by the runtime system and not by the
+    operating system)
+
+Semantic error:
+:   error during execution which is not recognized by the runtime
+    system\
+    (may be recognized by testing)
+
+Performance issue:
+:   runtime resource usage is not acceptable / not reasonable\
+    (may be recognized by profiling and benchmarks)
+
+### Cached results
+
+Recompilation of modules can be avoided by caching the results of the
+compilation phases.
+
+Executable file:
+:   cached result of linking
+
+Object file:
+:   cached result of code generation, needed for linking
+
+Interface file:
+:   cached result of type checking, needed in phases 3-7 for modules
+    importing this one
+
 ## Modules
 
 General module structure:
@@ -1691,6 +1597,128 @@ Examples:
 
 <!-- -->
     import qualified Prelude as P hiding (id)
+
+## Kinds
+
+### What is a kind?
+
+Kinds are the types of type expressions.
+
+If the type `t` has kind `k` then we write `t :: k`.\
+This syntax is the same as the `x :: t` for expressions and types, see [Expressions vs. types].
+
+As an example, `Int :: *`.\
+`*` is the type of types. `*` can be pronounced as 'type', so `Int :: *` can be pronounced as
+'int is a type'.
+
+In `ghci`, one can ask for the kind of a type expression:
+
+    Prelude> :k Int
+    Int :: *
+
+The fact `Int :: *` cannot be checked in Haskell98, but can be checked in an extension of it:
+
+    {-# language KindSignatures #-}
+
+    x = 1 :: (Int :: *)
+
+
+There are more interesting kinds than `*`. An example is `* -> *` which is the kind of
+type functions from type to type (for example, `Maybe :: * -> *`).
+
+### Kinds of type constructors
+
+    Int   :: *               -- Int is a type
+    Char  :: *               -- Char is a type
+    Bool  :: *               -- Bool is a type
+    Maybe :: * -> *          -- Maybe is a function from type to type 
+    []    :: * -> *          -- list is a function from type to type
+
+<!-- -->
+    (,)   :: * -> * -> *            -- same as  * -> (* -> *)
+    (,,)  :: * -> * -> * -> *       -- same as  * -> (* -> (* -> *))
+    (,,,) :: * -> * -> * -> * -> *
+    ...
+
+### Type application
+
+Type application has the same syntax as function application.
+
+Partial application is possible:
+
+    (,,)                 :: * -> * -> * -> *    -- no application
+    (,,) Int             :: * -> * -> *         -- partial application
+    (,,) Int Char        :: * -> *              -- partial application
+    (,,) Int Char Bool   :: *                   -- full application; same as (Int, Char, Bool)
+
+(Partial application of type synonyms is not allowed, see [type
+synonyms](#type-type-synonym-definition).)
+
+Kind mismatch is rejected by the compiler:
+
+    (,) Maybe           -- *wrong*, kind mismatch at application
+    (,) Int Char Bool   -- *wrong*, overapplication of type constructor (,)
+    Int Char            -- *wrong*, overapplication of type constructor Int
+
+### The kind of `(->)`
+
+    (->) :: * -> * -> *     -- almost, see later
+
+
+### Kind of constraints
+
+    Num                 :: * -> Constraint
+    Num Int             :: Constraint
+    Num a               :: Constraint           -- if a :: *
+    (Num Int, Eq Int)   :: Constraint
+
+<!-- -->
+    Num a => a          :: *      -- as if  (=>) :: Constraint -> * -> *
+
+### Type expression vs. type vs. type constructor
+
+**Type expression** or type-level expression is an expression at the
+type level, like `Maybe Int`.
+
+**Type** is a type expression with kind `*`.
+
+Sometimes 'type' is said instead of 'type expression' which may cause
+confusion.
+
+Every expression should have a *type*. For example, this hole cannot be
+filled: `_ :: Maybe`.
+
+**Type constructor** is a type expression defined by `data` and
+`newtype`.\
+There are some built-in type constructors too: `(->)`, `[]`, `()`,
+`(,)`, `(,,)`, ...
+
+Examples:
+
+                  -- type expression?    type?    type constructor?
+    Int           --  yes                 yes      yes
+    Maybe Int     --  yes                 yes      no
+    String        --  yes                 yes      no
+    Maybe         --  yes                 no       yes
+    (,,) Int      --  yes                 no       no
+
+### Other kinds
+
+Kinds which are beyond the scope of this tutorial:
+
+-   kind variables
+-   types lifted to the kind level, for example the kind of type-level
+    natural numbers
+-   The kind of a type may be other than `*`. The kind of a type `T`
+    encodes the calling convention of expressions of type `T`; `*` is
+    the kind of *lifted* types (whose values are accessed by a pointer).
+
+    Remember this when you ask the kind of the function type
+    constructor:
+
+        > :k (->)
+        (->) :: TYPE q -> TYPE r -> *
+
 
 ## Haskell language extensions
 
