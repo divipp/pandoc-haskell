@@ -1823,85 +1823,78 @@ is the same as
 
 # Data structures
 
-
+After going through Haskell language constructs let's see some concrete data structures
+with their common operations.
 
 ## Text representations
 
+We start with text representations.
+
 ### List of characters
+
+Beginners treat texts as lists of characters.  
+The type `String` is defined as a type synonym for lists of characters:
 
     type String = [Char]         -- defined in Prelude
 
 Pros:
 
--   automatically imported (defined in `Prelude`)
 -   generic list operations can be used (`take`, `drop`, `replicate`,
     ...)
--   the head and the tail can be matched with the `(:)` pattern
+-   the head and the tail of the text can be matched with the `(:)` pattern
+-   automatically imported (defined in `Prelude`)
 
 Cons:
 
--   memory inefficient
--   time inefficient
+-   memory inefficient: each character in the text uses approximately *40 bytes* of RAM on 64-bit architectures
+-   time inefficient: accessing the *n*nth character takes O(n) time (in the case of accessing individual characters)
 
 ### Packed unicode texts
 
-[API on
-Hackage](https://hackage.haskell.org/package/text/docs/Data-Text.html)
-
-    module Data.Text
-
-    data Text
-
-    instance Eq Text
-    instance Ord Text
-    instance Monoid Text
-    instance IsString Text
-    ...
-
-    pack :: String -> Text
-    unpack :: Text -> String
-
-    take :: Int -> Text -> Text
-    drop :: Int -> Text -> Text
-    takeEnd :: Int -> Text -> Text
-    dropEnd :: Int -> Text -> Text
-    ...
-
-<!-- -->
-    import Data.Text.IO
-
-    readFile :: FilePath -> IO Text
-    writeFile :: FilePath -> Text -> IO () 
-    ...
+Packed unicode text is the best option for most real-world applications.
 
 Pros:
 
 -   memory and time efficient
--   convenient & fast functions like `takeEnd` and `dropEnd`
+-   convenient & fast functions like `takeEnd` and `dropEnd`, see later
 
 Cons:
 
--   should be imported, with `qualified` import
 -   string literals work only with the `OverloadedString` language
     extension
 -   pattern matching works only with the `ViewPatterns` or
     `PatternSynonyms` language extension
+-   `Data.Text` should be imported with `qualified` import to avoid name clashes
+
+Overview of the [`Data.Text` API](https://hackage.haskell.org/package/text/docs/Data-Text.html):
+
+    data Text                         -- name of the data structure
+
+    pack   :: String -> Text          -- conversion from String to Text
+    unpack :: Text -> String          -- conversion from Text to String
+
+    instance Eq Text                  -- equality test for Text values
+    instance Ord Text                 -- ordering for Text values
+
+    take :: Int -> Text -> Text
+    drop :: Int -> Text -> Text
+    takeEnd :: Int -> Text -> Text    -- takeEnd 2 "hello" == "lo"
+    dropEnd :: Int -> Text -> Text    -- dropEnd 3 "hello" == "he"
+    ...
+
+[`Data.Text.IO`](https://hackage.haskell.org/package/text/docs/Data-Text-IO.html) exports
+the following functions:
+
+    readFile  :: FilePath -> IO Text        -- read the contents of a file as a Text
+    writeFile :: FilePath -> Text -> IO ()  -- write a Text to a file
+    ...
 
 ### Chunks of packed unicode texts
 
-    module Data.Text.Lazy
-
-    import qualified Data.Text as Strict
-
-    data Text
-
-    ...
-
-    toStrict :: Text -> Strict.Text
-    fromStrict :: Strict.Text -> Text
-
-Has the same API as `Data.Text` but optimized for streaming large
-quantities of data.
+`Data.Text.Lazy` has the same API as `Data.Text` but it is optimized for streaming large
+quantities of texts.  
+It is the best choice for writing filters (an application which takes and input text
+and gives an output text).
 
 Pros (compared to `Data.Text`):
 
@@ -1913,52 +1906,47 @@ Cons (compared to `Data.Text`):
 
 -   some operations may be slower
 
-### Packed bytes (low-level)
+Converstion between lazy and strict `Text`s:
 
-    module Data.ByteString
+    Data.Text.Lazy.toStrict   :: Data.Text.Lazy.Text -> Data.Text.Text
+    Data.Text.Lazy.fromStrict :: Data.Text.Text -> Data.Text.Lazy.Text
 
-    data ByteString
 
-    instance Eq ByteString
-    instance Ord ByteString
-    instance Monoid ByteString
-    instance IsString ByteString
-    ...
+### Packed bytes
 
-    pack :: [Word8] -> ByteString
-    unpack :: ByteString -> [Word8] 
+`ByteString` is a string of bytes.
+
+`ByteString` is *not* a proper text representation, it should be used
+for storing binary data or maybe ASCII texts.
+
+Overview of the [`Data.ByteString` API](https://hackage.haskell.org/package/bytestring/docs/Data-ByteString.html):
+
+    data ByteString                 -- name of the data structure
+
+    pack :: [Word8] -> ByteString   -- conversion from list of bytes to a ByteString
+    unpack :: ByteString -> [Word8] -- conversion from a ByteString to list of bytes
+
+    instance Eq ByteString          -- equality
+    instance Ord ByteString         -- comparision
 
     take :: Int -> ByteString -> ByteString
     drop :: Int -> ByteString -> ByteString
     ...
 
-    readFile :: FilePath -> IO ByteString
+    readFile  :: FilePath -> IO ByteString
     writeFile :: FilePath -> ByteString -> IO ()
     ...
 
-<!-- -->
-    import Data.ByteString.Char8
+[`Data.ByteString.Char8`](https://hackage.haskell.org/package/bytestring/docs/Data-ByteString-Char8.html)
+contains conversion functions between `ByteString` and *ASCII only* strings:
 
-    pack :: String -> ByteString
+    pack   :: String -> ByteString
     unpack :: ByteString -> String
 
-`ByteString` is *not* a proper text representation, it should be used
-for storing binary data or ASCII texts.
 
 ### Chunks of packed bytes
 
-    module Data.ByteString.Lazy
-
-    import qualified Data.ByteString as Strict
-
-    data ByteString
-
-    ...
-
-    toStrict :: ByteString -> Strict.ByteString
-    fromStrict :: Strict.ByteString -> ByteString
-
-Has the same API as `Data.ByteString` but optimized for streaming large
+`Data.ByteString.Lazy` has the same API as `Data.ByteString` but optimized for streaming large
 quantities of data.
 
 Pros (compared to `Data.ByteString`):
@@ -1970,6 +1958,13 @@ Pros (compared to `Data.ByteString`):
 Cons (compared to `Data.ByteString`):
 
 -   some operations may be slower
+
+Conversion between lazy and strict `ByteString`s:
+
+    Data.ByteString.Lazy.toStrict
+        :: Data.ByteString.Lazy.ByteString -> Data.ByteString.ByteString
+    Data.ByteString.Lazy.fromStrict
+        :: Data.ByteString.ByteString -> Data.ByteString.Lazy.ByteString
 
 ## Combinators
 
@@ -2460,6 +2455,9 @@ Example usage:
 ### `Monoid` type class
 
 TODO
+
+    instance Monoid Text
+    instance Monoid ByteString
 
 #### `Sum` monoid
 
