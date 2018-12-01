@@ -2667,6 +2667,53 @@ Pandoc use examples: a lot, TODO
 
 # Computation structures
 
+A computation structure, or just computation, is a representation of specific tasks.
+
+## Computation vs. data
+
+Similiarties between computations and data structures:
+
+-   both have types
+-   both can be combined from smaller parts into more complex ones with different combinators
+
+Differences between computations and data structures:
+
+-   data is for inspection; computations are for execution
+-   (as a consequence) some computations cannot be pattern matched on
+
+Interstingly, `Maybe`, `Either` and `[]` can be seen either as a data structure or as a computation at the same time.
+
+Examples:
+
+-   A `Maybe Int` value can be seen as a computation which gives an `Int` but which may fail doing so.
+-   An `Either String Int` value can be seen as a computation which gives an `Int` but which may fail
+    with a `String` error message.
+-   An `[Int]` value can be seen as a computation which gives an `Int` but which is non-deterministic.
+
+A bit more detailed example.  
+There is only syntactic difference between the two following definitions
+from the compiler's view, but the different syntax suggests different interpretations:
+
+    -- the list of all Pythagorean triples
+    pythagoreanTriples :: [(Int, Int, Int)]
+    pythagoreanTriples
+        [ (a,b,c)               -- each element has form (a, b, c) where
+        | c <- [1..]            -- c is any positive natural number
+        , b <- [1..c]           -- b is any natural number between 1 and c
+        , a <- [1..b]           -- a is any a natural number between 1 and b
+        , a^2 + b^2 == c^2      -- such that a^2 + b^2 == c^2
+        ]
+
+    -- a computation which produces a Pythagorean triple
+    aPythagoreanTriple :: [(Int, Int, Int)]
+    aPythagoreanTriple = do
+        c <- [1..]                  -- let c be a positive natural number
+        b <- [1..c]                 -- let b be a natural number between 1 and c
+        a <- [1..b]                 -- let a be a natural number between 1 and b
+        guard (a^2 + b^2 == c^2)    -- such that a^2 + b^2 == c^2
+        return (a,b,c)              -- let the result be (a, b, c)
+
+
 ## `IO` actions
 
 ### The `IO` type constructor
@@ -2675,8 +2722,8 @@ Pandoc use examples: a lot, TODO
 
     IO :: * -> *
 
-`IO a` is the type of *codes of interactive programs* which return an
-`a`-typed value when the program terminates.
+An `IO a` value can be seen as a *code of an interactive program* which returns an
+`a`-typed value when the program is executed.
 
 We say **IO action** or just **action** instead of "code of an
 interactive program".
@@ -2684,10 +2731,10 @@ interactive program".
 Examples of types constructed with `IO`, giving an element for each:
 
     -- getChar  is the action which waits for a character and returns it
-    getChar  :: IO Char
+    getChar :: IO Char
 
     -- (putChar c) is the action of putting c on the console
-    putChar  :: Char -> IO ()
+    putChar :: Char -> IO ()
 
     -- (sequence xs) is the action which performs actions xs and returns their collected results
     sequence :: [IO a] -> IO [a]
@@ -2695,11 +2742,11 @@ Examples of types constructed with `IO`, giving an element for each:
     -- (sequence_ xs) is the action which performs actions xs and returns ()
     sequence_ :: [IO a] -> IO ()
 
-    -- (pure x) is the action which returns x (does not have side effect)
-    pure     :: a -> IO a
+    -- (pure x) is the action which immediately returns x
+    pure :: a -> IO a
 
     -- (join x) is the action which first performs x, then performs the action returned by x
-    join     :: IO (IO a) -> IO a
+    join :: IO (IO a) -> IO a
 
 Examples of actions constructed from smaller actions:
 
