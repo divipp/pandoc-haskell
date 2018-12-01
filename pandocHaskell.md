@@ -1820,26 +1820,10 @@ is the same as
         ["I","am",x] -> "Hi " ++ x
         _ -> "I don't understand " ++ show xs
 
-# Advanced Haskell declarations
 
-## Monoids
+# Data structures
 
-TODO
 
-### `Sum` monoid
-
-[`Data.Monoid`](https://hackage.haskell.org/package/base/docs/Data-Monoid.html)
-defines:
-
-    newtype Sum a = Sum { getSum :: a }
-
-<!-- -->
-    instance Num a => Monoid (Sum a)
-
-Usage example:
-
-    -- foldMap :: Monoid m => (a -> m) -> t a -> m
-    getSum $ foldMap Sum [1,2,3,4]
 
 ## Text representations
 
@@ -1987,7 +1971,7 @@ Cons (compared to `Data.ByteString`):
 
 -   some operations may be slower
 
-## Containers
+## Combinators
 
 ### `Maybe` values
 
@@ -2040,6 +2024,8 @@ Constructors
 Functions
 
     either :: (a -> c) -> (b -> c) -> Either a b -> c    --- eliminator for Either
+
+## Containers
 
 ### `Set`
 
@@ -2468,6 +2454,28 @@ Example usage:
     Prelude Text.Pandoc.Builder> str "hello world!"
     Many {unMany = fromList [Str "hello world!"]}
 
+
+## Abstract operations
+
+### `Monoid` type class
+
+TODO
+
+#### `Sum` monoid
+
+[`Data.Monoid`](https://hackage.haskell.org/package/base/docs/Data-Monoid.html)
+defines:
+
+    newtype Sum a = Sum { getSum :: a }
+
+<!-- -->
+    instance Num a => Monoid (Sum a)
+
+Usage example:
+
+    -- foldMap :: Monoid m => (a -> m) -> t a -> m
+    getSum $ foldMap Sum [1,2,3,4]
+
 ### `Foldable` type class
 
 The essence of the `Foldable` class:
@@ -2647,84 +2655,19 @@ Use examples:
 
 Pandoc use examples: a lot, TODO
 
-## Custom classes
+<!--
+## Date and Time
 
-Given the following types:
+-   `UTCTime`, `TimeZone`, -- `ZonedTime`
 
-    -- | Metadata for the document:  title, authors, date.
-    newtype Meta = Meta { unMeta :: M.Map String MetaValue }
+## Words
 
-<!-- -->
-    data MetaValue = MetaMap (M.Map String MetaValue)
-                   | MetaList [MetaValue]
-                   | MetaBool Bool
-                   | MetaString String
-                   | MetaInlines [Inline]
-                   | MetaBlocks [Block]
+-   `Word8`
 
-We would like to have a polymorph `setMeta`:
+## Bits
+-->
 
-    setMeta "title" (text "The title") meta   --  :: String -> Inlines -> Meta -> Meta
-    setMeta "title" (text "The title") doc    --  :: String -> Inlines -> Pandoc -> Pandoc
-    setMeta "author" [text "author #1", text "author #2"] doc
-                                              --  :: String -> [Inlines] -> Pandoc -> Pandoc
-
-so `setMeta` should have type something like
-
-    setMeta :: (MetaSettable b a) => String -> b -> a -> a
-
-or better if we can factor the constraint `(MetaSettable b a)` into
-`(ToMetaValue b, HasMeta a)` because we have to define less instances
-later:
-
-    setMeta :: (ToMetaValue b, HasMeta a) => String -> b -> a -> a
-
-What should be `ToMetaValue`?
-
-    class ToMetaValue a where
-      toMetaValue :: a -> MetaValue
-
-<!-- -->
-    instance ToMetaValue Bool where
-      toMetaValue = MetaBool
-
-<!-- -->
-    instance ToMetaValue Inlines where
-      toMetaValue = MetaInlines . toList
-
-<!-- -->
-    instance ToMetaValue a => ToMetaValue [a] where
-      toMetaValue = MetaList . map toMetaValue
-
-<!-- -->
-    instance ToMetaValue MetaValue where
-      toMetaValue = id
-
-What should be `HasMeta`? The idiomatic solution would be
-
-    class HasMeta a where
-      setMetaPre :: String -> MetaValue -> a -> a
-      deleteMeta :: String -> a -> a
-
-    setMeta :: (ToMetaValue b, HasMeta a) => String -> b -> a -> a
-    setMeta key val = setMetaPre key (toMetaValue val)
-
-The actual solution does the same thing with a bit more work. <link>
-
-To specialize the too polymorph `setMeta` some wrappers are defined with
-restricted types:
-
-    setTitle :: Inlines -> Pandoc -> Pandoc
-    setTitle = setMeta "title"
-
-    setAuthors :: [Inlines] -> Pandoc -> Pandoc
-    setAuthors = setMeta "author"
-
-    setDate :: Inlines -> Pandoc -> Pandoc
-    setDate = setMeta "date"
-
-Usage examples: in the haddock documentation of `Text.Pandoc.Builder`.
-<link>
+# Computation structures
 
 ## `IO` actions
 
@@ -3420,7 +3363,9 @@ Remark: The `Maybe` monad is isomorphic to `ExceptT () Identity`.
 
 The actual `throwError` is more polymorphic (in an ad-hoc way).
 
-## Testing with `QuickCheck`
+# Testing
+
+## `QuickCheck`
 
 ### Quickly check properties
 
@@ -3627,202 +3572,6 @@ Pandoc uses `resize`, which is the same as `scale` with a constant size:
 
     resize :: Int -> Gen a -> Gen a 
     resize n = scale (const n)
-
-## JSON conversion
-
-``` {.bash}
-$ echo 'Hello *World*!' | pandoc --to json
-{"blocks":[{"t":"Para","c":[{"t":"Str","c":"Hello"},{"t":"Space"},{"t":"Emph","c":[{"t":"Str"
-,"c":"World"}]},{"t":"Str","c":"!"}]}],"pandoc-api-version":[1,17,3,1],"meta":{}}
-```
-
-<!-- -->
-``` {.bash}
-$ echo 'Hello *World*!' | pandoc --to json | pandoc --from json
-<p>Hello <em>World</em>!</p>
-```
-
-JSON conversion scheme:
-
-                        decode
-            <-----------------------------
-            parseJSON
-    Pandoc  <--------    Value    <-------   ByteString
-            -------->             ------->  
-             toJSON
-            ----------------------------->
-                        encode
-
-JSON conversion API:
-
-    module Data.Aeson where
-
-    ...
-
-    encode :: ToJSON a => a -> ByteString
-    decode :: FromJSON a => ByteString -> Maybe a 
-
-    class ToJSON a where
-        toJSON :: a -> Value
-        ...
-
-    class FromJSON a where
-        parseJSON :: Value -> Parser a
-        ...
-
-    -- JSON "syntax tree" in Haskell
-    data Value = Object !Object
-               | Array !Array
-               | String !Text
-               | Number !Scientific
-               | Bool !Bool
-               | Null
-
-    type Object = HashMap Text Value
-
-    type Array = Vector Value
-
-    data Parser a 
-
-    instance Monad Parser
-
-`ToJSON` instances in `Text.Pandoc.Definition`:
-
-    instance ToJSON Inline where
-      toJSON (Str s) = tagged "Str" s
-      toJSON (Emph ils) = tagged "Emph" ils
-      toJSON (Strong ils) = tagged "Strong" ils
-      toJSON (Strikeout ils) = tagged "Strikeout" ils
-      ...
-      toJSON Space = taggedNoContent "Space"
-      ...
-
-    tagged :: ToJSON a => [Char] -> a -> Value
-    tagged x y = object [ "t" .= x, "c" .= y ]
-
-    taggedNoContent :: [Char] -> Value
-    taggedNoContent x = object [ "t" .= x ]
-
-    object :: [Pair] -> Value  -- imported from Data.Aeson
-
-    type Pair = (Text, Value)  -- imported from Data.Aeson
-
-    (.=) :: ToJSON v => Text -> v -> Pair   -- imported from Data.Aeson, specialized type
-
-`FromJSON` instances in `Text.Pandoc.Definition`:
-
-    instance FromJSON Inline where
-      parseJSON (Object v) = do
-        t <- v .: "t"
-        case t of
-          "Str"         -> Str <$> v .: "c"
-          "Emph"        -> Emph <$> v .: "c"
-          "Strong"      -> Strong <$> v .: "c"
-          "Strikeout"   -> Strikeout <$> v .: "c"
-          ...
-          "Space"       -> return Space
-          ...
-
-    (.:) :: FromJSON a => Object -> Text -> Parser a   -- imported from Data.Aeson
-
-## Running tests
-
-    -- pandoc-types/test/test-pandoc-types.hs
-
-    ...
-
-    prop_roundtrip :: Pandoc -> Bool
-    prop_roundtrip doc = case decode $ encode doc :: (Maybe Pandoc) of
-      Just doc' -> doc == doc'
-      _ -> False
-
-    ...
-
-    tests :: [Test]
-    tests =
-      [ ...
-      , testGroup "JSON"
-        [ testGroup "encoding/decoding properties"
-          [ testProperty "round-trip" prop_roundtrip
-          ]
-        , ...
-        ]
-      ]
-
-    main :: IO ()
-    main = defaultMain tests
-
-How to run the tests:
-
-``` {.bash}
-pandoc-types$ cabal install --enable-tests
-...
-/pandoc-types$ cabal test
-Preprocessing library for pandoc-types-1.17.3..
-Building library for pandoc-types-1.17.3..
-Preprocessing test suite 'test-pandoc-types' for pandoc-types-1.17.3..
-Building test suite 'test-pandoc-types' for pandoc-types-1.17.3..
-Running 1 test suites...
-Test suite test-pandoc-types: RUNNING...
-Test suite test-pandoc-types: PASS
-Test suite logged to: dist/test/pandoc-types-1.17.3-test-pandoc-types.log
-1 of 1 test suites (1 of 1 test cases) passed.
-$
-```
-
-<!-- -->
-<!-- -->
-<!-- -->
-    choose :: Random a => (a,a) -> Gen a
-
-    suchThat :: Gen a -> (a -> Bool) -> Gen a
-
-    -- | Generates one of the given values. The input list must be non-empty.
-    elements :: [a] -> Gen a
-    elements [] = error "QuickCheck.elements used with empty list"
-    elements xs = (xs !!) `fmap` choose (0, length xs - 1)
-
-    -- | Chooses one of the given generators, with a weighted random distribution.
-    -- The input list must be non-empty.
-    frequency :: [(Int, Gen a)] -> Gen a
-    frequency [] = error "QuickCheck.frequency used with empty list"
-    frequency xs0 = choose (1, tot) >>= (`pick` xs0)
-     where
-      tot = sum (map fst xs0)
-
-      pick n ((k,x):xs)
-        | n <= k    = x
-        | otherwise = pick (n-k) xs
-      pick _ _  = error "QuickCheck.pick used with empty list"
-
-
-    -- | Generates a list of random length. The maximum length depends on the
-    -- size parameter.
-    listOf :: Gen a -> Gen [a]
-    listOf gen = sized $ \n ->
-      do k <- choose (0,n)
-         vectorOf k gen
-
-    -- | Generates a non-empty list of random length. The maximum length
-    -- depends on the size parameter.
-    listOf1 :: Gen a -> Gen [a]
-    listOf1 gen = sized $ \n ->
-      do k <- choose (1,1 `max` n)
-         vectorOf k gen
-
-## Generic programming
-
-TODO
-
-## Date and Time handling
-
--   `UTCTime`, `TimeZone`, -- `ZonedTime`
-
-## Words
-
--   `Word8`
-
-## Bits
 
 # Pandoc's source code
 
@@ -4333,6 +4082,267 @@ This "filter" can be used with pandoc like this:
 ``` {.bash}
 > pandoc --filter ./capitalize.hs
 ```
+
+## Custom classes
+
+Given the following types:
+
+    -- | Metadata for the document:  title, authors, date.
+    newtype Meta = Meta { unMeta :: M.Map String MetaValue }
+
+<!-- -->
+    data MetaValue = MetaMap (M.Map String MetaValue)
+                   | MetaList [MetaValue]
+                   | MetaBool Bool
+                   | MetaString String
+                   | MetaInlines [Inline]
+                   | MetaBlocks [Block]
+
+We would like to have a polymorph `setMeta`:
+
+    setMeta "title" (text "The title") meta   --  :: String -> Inlines -> Meta -> Meta
+    setMeta "title" (text "The title") doc    --  :: String -> Inlines -> Pandoc -> Pandoc
+    setMeta "author" [text "author #1", text "author #2"] doc
+                                              --  :: String -> [Inlines] -> Pandoc -> Pandoc
+
+so `setMeta` should have type something like
+
+    setMeta :: (MetaSettable b a) => String -> b -> a -> a
+
+or better if we can factor the constraint `(MetaSettable b a)` into
+`(ToMetaValue b, HasMeta a)` because we have to define less instances
+later:
+
+    setMeta :: (ToMetaValue b, HasMeta a) => String -> b -> a -> a
+
+What should be `ToMetaValue`?
+
+    class ToMetaValue a where
+      toMetaValue :: a -> MetaValue
+
+<!-- -->
+    instance ToMetaValue Bool where
+      toMetaValue = MetaBool
+
+<!-- -->
+    instance ToMetaValue Inlines where
+      toMetaValue = MetaInlines . toList
+
+<!-- -->
+    instance ToMetaValue a => ToMetaValue [a] where
+      toMetaValue = MetaList . map toMetaValue
+
+<!-- -->
+    instance ToMetaValue MetaValue where
+      toMetaValue = id
+
+What should be `HasMeta`? The idiomatic solution would be
+
+    class HasMeta a where
+      setMetaPre :: String -> MetaValue -> a -> a
+      deleteMeta :: String -> a -> a
+
+    setMeta :: (ToMetaValue b, HasMeta a) => String -> b -> a -> a
+    setMeta key val = setMetaPre key (toMetaValue val)
+
+The actual solution does the same thing with a bit more work. <link>
+
+To specialize the too polymorph `setMeta` some wrappers are defined with
+restricted types:
+
+    setTitle :: Inlines -> Pandoc -> Pandoc
+    setTitle = setMeta "title"
+
+    setAuthors :: [Inlines] -> Pandoc -> Pandoc
+    setAuthors = setMeta "author"
+
+    setDate :: Inlines -> Pandoc -> Pandoc
+    setDate = setMeta "date"
+
+Usage examples: in the haddock documentation of `Text.Pandoc.Builder`.
+<link>
+
+## JSON conversion
+
+``` {.bash}
+$ echo 'Hello *World*!' | pandoc --to json
+{"blocks":[{"t":"Para","c":[{"t":"Str","c":"Hello"},{"t":"Space"},{"t":"Emph","c":[{"t":"Str"
+,"c":"World"}]},{"t":"Str","c":"!"}]}],"pandoc-api-version":[1,17,3,1],"meta":{}}
+```
+
+<!-- -->
+``` {.bash}
+$ echo 'Hello *World*!' | pandoc --to json | pandoc --from json
+<p>Hello <em>World</em>!</p>
+```
+
+JSON conversion scheme:
+
+                        decode
+            <-----------------------------
+            parseJSON
+    Pandoc  <--------    Value    <-------   ByteString
+            -------->             ------->  
+             toJSON
+            ----------------------------->
+                        encode
+
+JSON conversion API:
+
+    module Data.Aeson where
+
+    ...
+
+    encode :: ToJSON a => a -> ByteString
+    decode :: FromJSON a => ByteString -> Maybe a 
+
+    class ToJSON a where
+        toJSON :: a -> Value
+        ...
+
+    class FromJSON a where
+        parseJSON :: Value -> Parser a
+        ...
+
+    -- JSON "syntax tree" in Haskell
+    data Value = Object !Object
+               | Array !Array
+               | String !Text
+               | Number !Scientific
+               | Bool !Bool
+               | Null
+
+    type Object = HashMap Text Value
+
+    type Array = Vector Value
+
+    data Parser a 
+
+    instance Monad Parser
+
+`ToJSON` instances in `Text.Pandoc.Definition`:
+
+    instance ToJSON Inline where
+      toJSON (Str s) = tagged "Str" s
+      toJSON (Emph ils) = tagged "Emph" ils
+      toJSON (Strong ils) = tagged "Strong" ils
+      toJSON (Strikeout ils) = tagged "Strikeout" ils
+      ...
+      toJSON Space = taggedNoContent "Space"
+      ...
+
+    tagged :: ToJSON a => [Char] -> a -> Value
+    tagged x y = object [ "t" .= x, "c" .= y ]
+
+    taggedNoContent :: [Char] -> Value
+    taggedNoContent x = object [ "t" .= x ]
+
+    object :: [Pair] -> Value  -- imported from Data.Aeson
+
+    type Pair = (Text, Value)  -- imported from Data.Aeson
+
+    (.=) :: ToJSON v => Text -> v -> Pair   -- imported from Data.Aeson, specialized type
+
+`FromJSON` instances in `Text.Pandoc.Definition`:
+
+    instance FromJSON Inline where
+      parseJSON (Object v) = do
+        t <- v .: "t"
+        case t of
+          "Str"         -> Str <$> v .: "c"
+          "Emph"        -> Emph <$> v .: "c"
+          "Strong"      -> Strong <$> v .: "c"
+          "Strikeout"   -> Strikeout <$> v .: "c"
+          ...
+          "Space"       -> return Space
+          ...
+
+    (.:) :: FromJSON a => Object -> Text -> Parser a   -- imported from Data.Aeson
+
+## Running tests
+
+    -- pandoc-types/test/test-pandoc-types.hs
+
+    ...
+
+    prop_roundtrip :: Pandoc -> Bool
+    prop_roundtrip doc = case decode $ encode doc :: (Maybe Pandoc) of
+      Just doc' -> doc == doc'
+      _ -> False
+
+    ...
+
+    tests :: [Test]
+    tests =
+      [ ...
+      , testGroup "JSON"
+        [ testGroup "encoding/decoding properties"
+          [ testProperty "round-trip" prop_roundtrip
+          ]
+        , ...
+        ]
+      ]
+
+    main :: IO ()
+    main = defaultMain tests
+
+How to run the tests:
+
+``` {.bash}
+pandoc-types$ cabal install --enable-tests
+...
+/pandoc-types$ cabal test
+Preprocessing library for pandoc-types-1.17.3..
+Building library for pandoc-types-1.17.3..
+Preprocessing test suite 'test-pandoc-types' for pandoc-types-1.17.3..
+Building test suite 'test-pandoc-types' for pandoc-types-1.17.3..
+Running 1 test suites...
+Test suite test-pandoc-types: RUNNING...
+Test suite test-pandoc-types: PASS
+Test suite logged to: dist/test/pandoc-types-1.17.3-test-pandoc-types.log
+1 of 1 test suites (1 of 1 test cases) passed.
+$
+```
+
+<!-- -->
+<!-- -->
+<!-- -->
+    choose :: Random a => (a,a) -> Gen a
+
+    suchThat :: Gen a -> (a -> Bool) -> Gen a
+
+    -- | Generates one of the given values. The input list must be non-empty.
+    elements :: [a] -> Gen a
+    elements [] = error "QuickCheck.elements used with empty list"
+    elements xs = (xs !!) `fmap` choose (0, length xs - 1)
+
+    -- | Chooses one of the given generators, with a weighted random distribution.
+    -- The input list must be non-empty.
+    frequency :: [(Int, Gen a)] -> Gen a
+    frequency [] = error "QuickCheck.frequency used with empty list"
+    frequency xs0 = choose (1, tot) >>= (`pick` xs0)
+     where
+      tot = sum (map fst xs0)
+
+      pick n ((k,x):xs)
+        | n <= k    = x
+        | otherwise = pick (n-k) xs
+      pick _ _  = error "QuickCheck.pick used with empty list"
+
+
+    -- | Generates a list of random length. The maximum length depends on the
+    -- size parameter.
+    listOf :: Gen a -> Gen [a]
+    listOf gen = sized $ \n ->
+      do k <- choose (0,n)
+         vectorOf k gen
+
+    -- | Generates a non-empty list of random length. The maximum length
+    -- depends on the size parameter.
+    listOf1 :: Gen a -> Gen [a]
+    listOf1 gen = sized $ \n ->
+      do k <- choose (1,1 `max` n)
+         vectorOf k gen
 
 ## Logging
 
