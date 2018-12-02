@@ -1,6 +1,6 @@
 ---
 author:
-- '*draft version 8*'
+- '*draft version 9*'
 classoption: oneside
 documentclass: book
 geometry: 'margin=1.2in'
@@ -22,6 +22,15 @@ header-includes: |
     codebase of Pandoc
 2.  become acquainted with the codebase of Pandoc
 
+\begin{figure}[h]
+\centering
+\includegraphics{debian-popcon.png}
+\caption{Debian Popularity Contest trends for the most popular Haskell
+packages}
+\end{figure}
+
+
+
 ### Target audience
 
 Basic Haskell knowledge is required; see [Basic Haskell language
@@ -39,9 +48,6 @@ According to [GitHub](https://github.com/search?q=language%3AHaskell)
 and the [Debian Popularity
 Contest](https://qa.debian.org/popcon-graph.php?packages=pandoc+ghc+darcs+xmonad+shellcheck+agda+haskell-stack&show_installed=on&want_percent=on&want_legend=on&from_date=2010-01-01&to_date=&hlght_date=&date_fmt=%25Y&beenhere=1),
 Pandoc is the most popular Haskell application.
-
-![Debian Popularity Contest trends for the most popular Haskell
-packages](debian-popcon.png)
 
 ### Markdown basics
 
@@ -79,7 +85,7 @@ The markdown source of this tutorial can be found
 
 ### Command line interface of `pandoc`
 
-By default `pandoc` works as a pipe:
+By default `pandoc` works as a pipe (the command line examples are given in Linux):
 
 ``` {.bash}
 $ echo 'Hello, *World*!' | pandoc
@@ -149,7 +155,7 @@ $ pandoc http://www.bbc.com/news --from html-native_divs-native_spans \
 ### Standalone documents
 
 By default, `pandoc` produces a fragment in the output format.\
-For example, the following command produce a fragment of a linux manual
+For example, the following command produces a fragment of a linux manual
 page:
 
 ``` {.bash}
@@ -327,6 +333,11 @@ only syntactically, see [application syntax](#application-syntax).
 
 #### Variable vs. constructor identifiers
 
+In Haskell, constructors are the building blocks of [data types](#data-algebraic-data-type-definition)
+and types.
+There is a syntactical difference between constructors and variables to help the reader
+of the source code.
+
 constructor:
 :   identifier beginning with an uppercase letter or `:` (colon).
 
@@ -355,7 +366,7 @@ qualifier:
     Data.Map.toList
     Data.Monoid.<>      -- qualified operator
 
-The meaning of qualifiers is discussed in [Import lists](#import-list).
+The meaning of qualifiers is discussed in [Import declarations](#import-declaration).
 
 #### Special syntax for some frequently used constructors
 
@@ -378,8 +389,8 @@ In Haskell source code, every word can marked as an 'expression' or a 'type'.
 
 For example, expressions are colored red and types are colored blue here:
 
-\texttt{\red{splitAt} :: \blue{Int -> [a] -> ([a], [a])}}\
-\texttt{\red{splitAt i xs = (take (i} :: \blue{Int}\red{) xs, drop i xs)}}
+\texttt{\red{splitAt} \blue{:: Int -> [a] -> ([a], [a])}}\
+\texttt{\red{splitAt i xs = (take (i} \blue{:: Int}\red{) xs, drop i xs)}}
 
 The general rule is that types comes after `::` until the end of the next language construct.
 
@@ -392,11 +403,19 @@ which means the red `i` and the blue `i` above are different variables.
 
 ### Application syntax
 
+In Mathematics, $f(x)(y)$ means that $f$ is a function, and $f$ applied on $x$ is also a function
+and that function is applied on $y$.
+
+In Haskell the same is written as `f x y` or `(f x) y`.  
+The two are exactly the same because function application is left-associative.
+
+#### Prefix and infix notation
+
 Prefix notation for alphanumeric identifiers:
 
-    id 2                        -- id applied to 2
+    id 2                        -- identity function applied to 2
     div x y                     -- div applied to x and y
-    Either Int Bool             -- Either applied to Int and Bool
+    Either Int Bool             -- disjunct union type of Int and Bool
     Prelude.Either Int Bool     -- how to apply a qualified name
 
 Prefix notation for operators:
@@ -423,11 +442,6 @@ Expressions with infix notation:
 Precedences are declared with [fixity
 declarations](#fixity-declaration).
 
-Note that prefix application is left-associative:
-
-    replicate 4 'c'     -- same as ((replicate 4) 'c')
-                        -- replicate 4 :: a -> [a]
-
 #### Negation syntax
 
 Negation is the only prefix operation:
@@ -448,9 +462,10 @@ Negation needs parenthesis in several cases:
 
 #### Partial application
 
+The *arity* of a function is the number of its arguments. For example, the arity of `(+)` is 2.
+
 A function/constructor is partially applied if it is applied to less
-arguments than its arity. The *arity* of a function/constructor is
-determined by its definition (see later).
+arguments than its arity.
 
     (+) 1       -- same as \x -> (+) 1 x, see lambda expression
     map f       -- same as \xs -> map f xs
@@ -476,6 +491,7 @@ Overapplying a constructor yields always a type error.
 Left sections:
 
     (+1)                -- same as  \x -> x + 1
+    (+1) 15             -- evaluated to 16
     (+ 2*a)             -- same as  \x -> x + 2*a
 
 Right sections:
@@ -508,13 +524,15 @@ Dot-dot expressions are just syntactic sugars:
 
     [2^n | n <- [0..10]]          -- one generator
     [2^n | n <- reverse xs]       -- the generator can refer to any list
-    [2^n | n <- [0..10], even n]  -- one generator, one boolean guard
-    [2^n | even n]                -- one boolean guard (the result is empty or singleton)
+    [2^n | n <- [0..10], even n]  -- one generator, one Boolean guard
+    [2^n | even n]                -- one Boolean guard (the result is empty or singleton)
     [(a, b) | a <- [0..10], b <- [a..10]]    -- two generators
-    [x | n <- [0..], let x = 2^n, x > 10^9]  -- generator, local declaration, boolean guard
+    [x | n <- [0..], let x = 2^n, x > 10^9]  -- generator, local declaration, Boolean guard
     ...
 
 ### Type annotation
+
+With type annotations one can specialize the type of an expression.
 
     1 :: Int            -- expression :: type
     f 1 :: Int          -- same as  (f 1) :: Int
@@ -530,7 +548,7 @@ Dot-dot expressions are just syntactic sugars:
        [] -> True           --     pattern -> expression
        x: xs -> odd x       --     pattern -> expression
 
-Case alternatives can also have [guards](#guard) and [local
+Case alternatives can also have [guards](#guards) and [local
 definitions](#where-block).
 
 ## Patterns
@@ -571,9 +589,12 @@ Literals can be used in patters, with negation too:
 `Bool`, tuple and list patterns has similar syntax as the corresponding
 expressions:
 
-    (True, _:_)         -- same as  ((,) True ((:) _ _))
-    []                  -- empty list pattern
-    [a, True, _]        -- same as  (a : True : _ : [])
+    True                -- matches True, (not False), (False || True), ...
+    (True, False)       -- matches (not False, False), ...; same as ((,) True False)
+    []                  -- matches an empty list
+    _ : _               -- matches any non-empty list; same as ((:) _ _)
+    True : _            -- matches any non-empty list with a True head
+    [a, True]           -- same as (a : True : [])
 
 ### Application in patterns
 
@@ -581,6 +602,7 @@ Patterns have more restriction on application than expressions:
 
     not True     -- *wrong pattern*, only constructor application is allowed in patterns
     (:) True     -- *wrong pattern*, partial application is not allowed in patterns
+    (:) True []  -- ok, because the arity of (:) is 2
 
 Overapplication of constructors are always wrong:
 
@@ -605,17 +627,17 @@ Example:
 
 ### Simple type
 
-    Char
-    Bool
+    Char            -- the type of unicode characters
+    Bool            -- the type of Booleans
 
 ### Compound type
 
-    Maybe Int
+    Set Int         -- Set applied on Int; set of integers
 
 Compound list and tuple types have special syntax:
 
-    (Int, Char)    -- same as  (,) Int Char
-    [Int]          -- same as  [] Int
+    (Int, Char)     -- same as  (,) Int Char
+    [Int]           -- same as  [] Int
 
 #### Function type
 
@@ -634,7 +656,9 @@ beginning of the type.
 
 ### Type class constraints
 
-    Num a => a                    -- constraint => type
+Type class constraints controls the possible substitutions of type variables
+
+    Num c => c -> c               -- c can be substituted by Int, Double, ...
     Num Int => a                  -- same as  a, because there is  instance Num Int
     Num Char => a                 -- yields no  instance Num Char  found error
     Eq [a] => b                   -- same as  Eq a => b, because  Eq a => Eq [a]
@@ -668,7 +692,6 @@ Multiple constraints:
     not True  = False    -- 1st alternative
     not False = True     -- 2nd alternative
 
-<!-- -->
 #### Guards
 
     min x y
@@ -719,19 +742,21 @@ Mutual recursion:
     falseTrue = False: trueFalse
     trueFalse = True:  falseTrue
 
-#### Ad-hoc polymorph constant
+#### Ad-hoc polymorphic constant
+
+The final type of an ad-hoc polymorphic constant is determined by the context in which it is used.
 
     one :: Num a => a
     one = 1
 
-### Type annotation
+### Type signature
+
+Each type signature should have a corresponding definition.
 
     one :: Int          -- variable(s) :: type
 
 <!-- -->
     two, three :: Int   -- same as 'two :: Int' and 'three :: Int'
-
-Each type annotation should have a corresponding definition.
 
 # Basic Haskell declarations
 
@@ -794,18 +819,10 @@ Each type annotation should have a corresponding definition.
     sqrt  :: Floating a => a -> a       --- square root
     log   :: Floating a => a -> a       --- logarithm to the base of e
     exp   :: Floating a => a -> a       --- base e exponential function
-    sin   :: Floating a => a -> a       --- sine of argument in radians
-    cos   :: Floating a => a -> a       --- cosine of argument in radians
-    tan   :: Floating a => a -> a       --- tangent of argument in radians
-    asin  :: Floating a => a -> a       --- arcsine
-    acos  :: Floating a => a -> a       --- arccosine
-    atan  :: Floating a => a -> a       --- arctangent
-    sinh  :: Floating a => a -> a       --- hyperbolic sine
-    cosh  :: Floating a => a -> a       --- hyperbolic cosine
-    tanh  :: Floating a => a -> a       --- hyperbolic tangent
-    asinh :: Floating a => a -> a       --- hyperbolic arcsine
-    acosh :: Floating a => a -> a       --- hyperbolic arccosine
-    atanh :: Floating a => a -> a       --- hyperbolic arctangent
+    sin,   cos,   tan   :: Floating a => a -> a  --- sine, cosine, tangent (argument in radians)
+    asin,  acos,  atan  :: Floating a => a -> a  --- arcsine, arccosine, arctangent
+    sinh,  cosh,  tanh  :: Floating a => a -> a  --- hyperbolic sine, cosine, tangent
+    asinh, acosh, atanh :: Floating a => a -> a  --- hyperbolic arcsine, arccosine, arctangent
     quot  :: Integral a => a -> a -> a  --- quotient (multiplicative)
     div   :: Integral a => a -> a -> a  --- quotient (additive)
     rem   :: Integral a => a -> a -> a  --- remainder (multiplicative)
@@ -818,8 +835,17 @@ Each type annotation should have a corresponding definition.
 
 #### Types {#types-2 .unnumbered}
 
-    Bool         --- boolean value
+    Bool         --- Boolean value
     Ordering     --- result of comparison
+
+#### Constructors {#constructors .unnumbered}
+
+    False     :: Bool       --- false
+    True      :: Bool       --- true
+
+    GT        :: Ordering   --- greater
+    LT        :: Ordering   --- less
+    EQ        :: Ordering   --- equal
 
 #### Type classes {#type-classes-1 .unnumbered}
 
@@ -827,14 +853,6 @@ There are `Eq` and `Ord` instances for almost every type but functions.
 
     Eq   = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
     Ord  = {Int, Double, Char, (Int, Char), [Int], ([Int], Char), [[Int]], ...}
-
-#### Constructors {#constructors .unnumbered}
-
-    False     :: Bool       --- false
-    True      :: Bool       --- true
-    GT        :: Ordering   --- greater
-    LT        :: Ordering   --- less
-    EQ        :: Ordering   --- equal
 
 #### Constants {#constants-1 .unnumbered}
 
@@ -904,7 +922,7 @@ Notes
 #### Constructors {#constructors-2 .unnumbered}
 
     []      :: [a]                  --- empty list
-    (:)     :: a -> [a] -> [a]      --- insert into left end (beginning) of a list
+    (:)     :: a -> [a] -> [a]      --- non-empty list constructor, 1:(2:[]) == [1,2]
 
 #### Generic functions {#generic-functions .unnumbered}
 
@@ -1084,7 +1102,7 @@ functions.
 *Entities in this section are defined in `Prelude`.*
 
     undefined :: a          --- abort evaluation
-    error :: String -> a    --- abort evaluation with error message
+    error :: String -> a    --- (error "impossible") aborts evaluation with message "impossible"
 
 ## Fixity declarations in `Prelude`
 
@@ -1157,9 +1175,6 @@ Partial application of type synonyms is not allowed:
 
     type Tw = Two         -- *wrong*, use 'type Tw a = Two a'
 
-<!-- -->
-    instance Functor Two  -- *wrong*, turn 'Two' into a newtype; see later
-
 ### `data` -- algebraic data type definition
 
 `data` defines a new *algebraic data type (ADT)*, which consists of a type
@@ -1172,7 +1187,7 @@ For example,
 
 defines
 
-    Bool :: *           -- type constructor
+    Bool                -- type constructor
     False :: Bool       -- constructor, so False is a pattern too
     True  :: Bool       -- constructor, so True is a pattern too
 
@@ -1190,16 +1205,12 @@ For example,
 
 defines
 
-    Complex :: *
+    Complex
     Pair :: Double -> Double -> Complex     -- Pair can be used in patterns
 
 <!-- -->
     re :: Complex -> Double
     re (Pair r _) = r                 -- Pair used in a pattern
-
-Pandoc examples:
-
-`Alignment`, `QuoteType`, `MathType`
 
 #### ADTs with parameters
 
@@ -1225,16 +1236,19 @@ Mutual recursion is also allowed.
 
 #### Records
 
-Fields of constructors can be named. For example,
+Fields of constructors can be named.  
+For example, instead of
+
+    data Complex = Pair Double Double
+
+one can write
 
     data Complex = Pair {re :: Double, im :: Double}
 
-defines
+which has the advantage that it defines also the *accessor functions*
 
-    Complex :: *
-    Pair :: Double -> Double -> Complex
-    re :: Complex -> Double                 -- field accessor function
-    im :: Complex -> Dobble                 -- field accessor function
+    re :: Complex -> Double         -- field accessor function
+    im :: Complex -> Dobble         -- field accessor function
 
 Moreover, the following expressions are valid
 
@@ -1251,39 +1265,17 @@ Contracted syntax:
 
     data Complex = Pair {re, im :: Double}
 
-Pandoc examples:
-
-`Citation`
-
 ### `newtype` definitions
 
-Until the end of type checking phase, `newtype` is similar to `data`
-with the following constraints:
+`newtype` is similar to `data` with the following constraints:
 
 -   Exactly one constructor is defined
 -   Exactly one field of the constructor is defined
 
-After the type checking phase, `newtype` behaves like a type synonym.
-
-Example from Pandoc:
-
-    newtype Format = Format String
-        -- behaves as 'data Format = Format String' until the end of type checking
-        -- behaves as 'type Format = String'        after type checking
-
-Advantages of `newtype` over `type`:
-
--   `Format` and `String` are two distinct types
-    -   less error prone
-    -   they can have different `Show`, `Read`, ... instances
--   `newtype` definitions may be recursive, unlike type synonyms
--   `newtype` defines a type constructor which can be partially applied
-    (in case of parametric newtypes)
-
 Advantages of `newtype` over `data`:
 
 -   better runtime performance
--   see `GeneralizedNewtypeDeriving`
+-   the compiler can derive more type class instances
 
 ### `class` definitions
 
@@ -1296,7 +1288,7 @@ Example:
 
 defines
 
-    Eq :: * -> Constraint               -- type class constructor
+    Eq                                  -- type class constructor
     (==) :: Eq a => a -> a -> Bool      -- type class method
     (/=) :: Eq a => a -> a -> Bool      -- type class method
 
@@ -1361,6 +1353,9 @@ constraints:
     Eq ((Bool,Bool),[Bool])
     -- ...
 
+Instance definitions are not allowed on type synonyms in Haskell 98.
+
+
 ## What is a Haskell program?
 
 This subsection contains the essential vocabulary which is needed to
@@ -1388,7 +1383,7 @@ Knowing phases of execution helps to understand error messages.
 1.  *lexical analysis*
     -   recognize the beginning and end of "words" and punctuation
         (these are called *tokens*)
-    -   recognize layout (whitespace matters in Haskell)
+    -   recognize layout (indentation matters in Haskell)
     -   skip whitespace and comments
 2.  *parsing*
     -   recognize language constructs
@@ -1444,10 +1439,10 @@ Performance issue:
 :   runtime resource usage is not acceptable / not reasonable\
     (may be recognized by profiling and benchmarks)
 
-### Cached results
+### Cached intermediate results of compilation
 
-Recompilation of modules can be avoided by caching the results of the
-compilation phases.
+Caching the results of the compilation phases helps to avoid unnecessary
+recompilation of modules (if only one of the modules changes, for example).
 
 Executable file:
 :   cached result of linking
@@ -1470,22 +1465,6 @@ General module structure:
     import Prelude                              -- 0 or more import declarations
 
     x = 1                                       -- 0 or more other declarations
-
-### Language pragmas
-
-Language extension pragmas extend the Haskell98 language.
-
-Syntax:
-
-    {-# LANGUAGE CPP #-}              -- 'language' (with lowercase letters) is also good
-    {-# LANGUAGE PatternGuards #-}
-
-or packed together:
-
-    {-# LANGUAGE CPP, PatternGuards #-}
-
-The language extensions used by Pandoc are discussed at [Haskell
-language extensions](#haskell-language-extensions).
 
 ### Module header
 
@@ -1660,17 +1639,16 @@ Kind mismatch is rejected by the compiler:
     (,) Int Char Bool   -- *wrong*, overapplication of type constructor (,)
     Int Char            -- *wrong*, overapplication of type constructor Int
 
-### The kind of `(->)`
-
-    (->) :: * -> * -> *     -- almost, see later
-
 
 ### Kind of constraints
 
-    Num                 :: * -> Constraint
+`Constraint` is the kind of type class constraints.  
+For example:
+
     Num Int             :: Constraint
+    Num                 :: * -> Constraint
     Num a               :: Constraint           -- if a :: *
-    (Num Int, Eq Int)   :: Constraint
+    (Num Int, Eq Int)   :: Constraint           -- constraints can be tupled together
 
 <!-- -->
     Num a => a          :: *      -- as if  (=>) :: Constraint -> * -> *
@@ -1721,6 +1699,31 @@ Kinds which are beyond the scope of this tutorial:
 
 
 ## Haskell language extensions
+
+Very brief history of the Haskell language descriptions:
+
+-   1990: The Haskell version 1.0 Report was published
+-   1999: The Haskell 98 Report: Language and Libraries was published
+-   2002: [The Revised Haskell 98 Report: Language and Libraries](https://www.haskell.org/onlinereport/) was published
+-   [Haskell 2010 Language Report](https://www.haskell.org/onlinereport/haskell2010/)
+
+The Haskell language used nowadays is defined either as Haskell98 or as Haskell2010 plus
+a set of language extensions.
+
+Haskell modules can specify the actually used language extensions in the very beginning
+of the module (before the module header).
+
+Syntax:
+
+    {-# LANGUAGE CPP #-}              -- 'language' (with lowercase letters) is also good
+    {-# LANGUAGE PatternGuards #-}
+
+or packed together:
+
+    {-# LANGUAGE CPP, PatternGuards #-}
+
+The language extensions used by Pandoc are discussed at [Haskell
+language extensions](#haskell-language-extensions).
 
 The following language extensions are used by Pandoc:
 
@@ -1892,8 +1895,8 @@ the following functions:
 ### Chunks of packed unicode texts
 
 `Data.Text.Lazy` has the same API as `Data.Text` but it is optimized for streaming large
-quantities of texts.  
-It is the best choice for writing filters (an application which takes and input text
+quantities of texts.
+It is the best choice for writing filters (an application which takes an input text
 and gives an output text).
 
 Pros (compared to `Data.Text`):
@@ -1916,8 +1919,16 @@ Converstion between lazy and strict `Text`s:
 
 `ByteString` is a string of bytes.
 
-`ByteString` is *not* a proper text representation, it should be used
-for storing binary data or maybe ASCII texts.
+The type of bytes in Haskell is called `Word8`.
+
+Pros:
+
+-   `ByteString` is more efficient than `Text`.
+
+Cons:
+
+-   `ByteString` is *not* a proper text representation, it should be used
+    for storing binary data or maybe ASCII texts.
 
 Overview of the [`Data.ByteString` API](https://hackage.haskell.org/package/bytestring/docs/Data-ByteString.html):
 
@@ -1966,15 +1977,22 @@ Conversion between lazy and strict `ByteString`s:
     Data.ByteString.Lazy.fromStrict
         :: Data.ByteString.ByteString -> Data.ByteString.Lazy.ByteString
 
-## Combinators
+## Data combinators
 
 ### `Maybe` values
 
 *Entities in this section are defined in `Prelude` or `Data.Maybe`.*
 
+`(Maybe c)` can be seen as a list of `c`-s with 0 or 1 element.
+
 Type
 
     Maybe :: * -> *          --- list with most one value
+
+Constructors
+
+    Nothing   :: Maybe a                --- corresponds to the empty list
+    Just      :: a -> Maybe a           --- result corresponds to the singleton list
 
 Instances
 
@@ -1983,26 +2001,28 @@ Instances
     instance Show a => Show (Maybe a)
     instance Read a => Read (Maybe a)
 
-Constructors
-
-    Nothing   :: Maybe a                --- corresponds to the empty list
-    Just      :: a -> Maybe a           --- result corresponds to the singleton list
-
 Functions
 
-    isNothing :: Maybe a -> Bool        --- is empty
-    isJust    :: Maybe a -> Bool        --- is non-empty
-    maybe     :: b -> (a -> b) -> Maybe a -> b    --- eliminator for Maybe
+    isNothing :: Maybe a -> Bool                    --- is empty
+    isJust    :: Maybe a -> Bool                    --- is non-empty
+    maybe     :: b -> (a -> b) -> Maybe a -> b      --- eliminator for Maybe
     find      :: Foldable t => (a -> Bool) -> t a -> Maybe a   --- first element by condition
-    lookup    :: Eq a => a -> [(a, b)] -> Maybe b           --- lookup in an association list
+    lookup    :: Eq a => a -> [(a, b)] -> Maybe b   --- lookup in an association list
 
 ### `Either` -- disjoint union
+
+`Either a b` is an `a` or a `b` but not both.
 
 *Entities in this section are defined in `Prelude`.*
 
 Type
 
     Either :: * -> * -> *    --- disjunct union
+
+Constructors
+
+    Left   :: a -> Either a b    --- tag elements of the first type
+    Right  :: b -> Either a b    --- tag elements of the second type
 
 Instances
 
@@ -2011,252 +2031,93 @@ Instances
     instance (Show a, Show b) => Show (Either a b)
     instance (Read a, Read b) => Read (Either a b)
 
-Constructors
-
-    Left   :: a -> Either a b    --- tag elements of the first type
-    Right  :: b -> Either a b    --- tag elements of the second type
-
 Functions
 
-    either :: (a -> c) -> (b -> c) -> Either a b -> c    --- eliminator for Either
+    either :: (a -> c) -> (b -> c) -> Either a b -> c  --- either even not (Left 3) == False
+    lefts  :: [Either a b] -> [a]     --- lefts  [Left 3, Right 'c', Left 4] == [3, 4]
+    rights :: [Either a b] -> [a]     --- rights [Left 3, Right 'c', Left 4] == ['c']
 
 ## Containers
 
+The standard Haskell containers are defined in the [containers package](https://hackage.haskell.org/package/containers).
+
 ### `Set`
 
-    Set a       ~      a -> Bool
-    Map a b     ~      a -> Maybe b
-    Seq a       ~      [a]
+`Set a` is isomorphic to `a -> Bool` but it is more efficient.
 
-<https://hackage.haskell.org/package/containers>
-
-Semantics:
-
-    Set.fromList ['a', 'a']  ==  Set.fromList ['a']
-    Set.fromList ['a', 'b']  ==  Set.fromList ['b', 'a']
-
-<!-- -->
-    Set a       ~      a -> Bool  +  toList
-    Set a       ~      [a]  -  sorrend  -  duplikátumok
-
-basic operations:
-
-    empty       :: Set a                     -- = mempty
-    singleton   :: a -> Set a
-    union       :: Ord a => Set a -> Set a -> Set a   -- = (<>)
-
-    splitMember :: Ord a => a -> Set a -> (Set a, Bool, Set a)
+There are conversion functions between sets and lists also:
 
     toList      :: Set a -> [a]
+    fromList    :: Ord a => [a] -> Set a
 
-other operations:
+Note that sets are not isomorphic to lists, because the ordering and multiplicity of elements
+does not matter in sets:
 
-    insert x xs
-        = singleton x <> xs
+    fromList ['a', 'a']  ==  fromList ['a']
+    fromList ['a', 'b']  ==  fromList ['b', 'a']
 
-<!-- -->
-    unions
-        = foldr (<>) mempty
-        -- = mconcat
+Other basic operations:
 
-<!-- -->
-    member x xs
-        = b
-      where (_, b, _) = splitMember x xs
+    empty       :: Set a
+    singleton   :: a -> Set a
+    union       :: Ord a => Set a -> Set a -> Set a
+    delete      :: Ord a => a -> Set a -> Set a
 
-<!-- -->
-    delete x xs
-        = ys <> zs
-      where (ys, _, zs) = splitMember x xs
+    member      :: Ord a => a -> Set a -> Bool
+    size        :: Set a -> Int
 
-<!-- -->
-    fromList
-        = mconcat . map singleton
-
-<!-- -->
-    size
-        = length . toList
-        -- but more efficient, O(1)
-
-<!-- -->
-    null x
-        = size x == 0
-
-<!-- -->
-    filter p
-        = fromList . List.filter p . toList
-
-<!-- -->
-    intersection = ...
-
-    difference = ...
-
-persistence demo
-
-Usage examples:
-
-    module Text.Pandoc.Shared
-
-    ...
-
-    import qualified Data.Set as Set
-
-    ...
+Sets can be used for eliminating duplicate elements from lists:
 
     ordNub :: Ord a => [a] -> [a]
-    ordNub l = go Set.empty l
+    ordNub l = go empty l
       where
         go _ [] = []
-        go s (x:xs) = if x `Set.member` s then go s xs
-                                          else x : go (Set.insert x s) xs
-
-    ...
-
-    -- | Generate a unique identifier from a list of inlines.
-    -- Second argument is a list of already used identifiers.
-    uniqueIdent :: [Inline] -> Set.Set String -> String
-    uniqueIdent = ...
-
-    ...
-
-    -- accepted uri-schemes by pandoc
-    schemes :: Set.Set String
-    schemes = Set.fromList
-      [ "aaa", "aaas", "about", "acap", "acct", "acr", "adiumxtra", "afp", "afs"
-      , "aim", "appdata", ...
-
-    isURI :: String -> Bool
-    isURI = maybe False hasKnownScheme . parseURI
-      where
-        hasKnownScheme = (`Set.member` schemes)
-                       . map toLower
-                       . uriScheme
-
-<!-- -->
-    module Text.Pandoc.Shared
-
-    ...
-
-    import qualified Data.Set as Set
-
-    ...
-
-    defaultAbbrevs :: Set.Set String
-    defaultAbbrevs = Set.fromList
-                     [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
-                       "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
-                       "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
-                       "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
-                       "ch.", "sec.", "cf.", "cp."]
+        go s (x:xs) | member x s = go s xs
+                    | otherwise  = x : go (insert x s) xs
 
 ### `Map`
 
-        Map.fromList [('a', 1), ('a', 2)]  ==  Map.fromList [('a', 2)]
-        Map.fromList [('a', 1), ('b', 1)]  /=  Map.fromList [('b', 1)]
-        Map.fromList [('a', 1), ('b', 2)]  ==  Map.fromList [('b', 2), ('a', 1)]
+`(Map k v)` represents a function from a finite subset of `k` to `v`.  
+`(Map k v)` is isomorphic to `(k -> Maybe v)`.
 
-        Map a b     ~      a -> Maybe b   +   domain
-        Map a b     ~      [(a, b)]  -  sorrend  -  duplikátumok (az első elem szerint)
+There are conversion functions between `(Map k v)` and `[(k, v)]` also:
 
-<!-- -->
-        Set a       ~      Map a ()
+    toList      :: Map k v -> [(k, v)]
+    fromList    :: Ord k => [(k, v)] -> Map k v
 
-basic operations:
+Note that maps are not isomorphic to these pair lists,
+because the ordering of pairs does not matter and subsequent pairs with the same first elements
+take priority over the previous ones:
 
-    empty       :: Map a b                     -- = mempty
-    singleton   :: a -> b -> Map a b
-    union       :: Ord a => Map a b -> Map a b -> Map a b   -- = (<>), left-biased
+    fromList [('a', 1), ('b', 2)]  ==  fromList [('b', 2), ('a', 1)]
+    fromList [('a', 1), ('a', 2)]  ==  fromList [('a', 2)]
 
-    splitLookup :: Ord a => a -> Map a b -> (Map a b, Maybe b, Map a b)
+Note that `(Set c)` is isomorphic to `(Map c ())`.
 
-    toList      :: Map a b -> [(a, b)]
+Basic operations:
 
-other operations:
+    empty       :: Map k v                    -- the empty map, i.e. the domain is empty set
+    singleton   :: k -> v -> Map k v                    -- (singleton 'c' 3) maps 'c' to 3
+    union       :: Ord k => Map k v -> Map k v -> Map k v   -- left-biased union
+    delete      :: Ord k => k -> Map k v -> Map k v     -- deletes an element from the domain
 
-    insert x a xs
-        = singleton x a <> xs
+    lookup      :: Ord k => k -> Map k v -> Maybe v     -- use the map as a function
+    size        :: Map k v -> Int                       -- size of the domain
 
-<!-- -->
-    unions
-        = foldr (<>) mempty
-        -- = mconcat
-
-<!-- -->
-    lookup x xs
-        = b
-      where (_, b, _) = splitLookup x xs
-
-<!-- -->
-    member x xs
-        = maybe False (const True) (lookup x xs)
-
-<!-- -->
-    delete x xs
-        = ys <> zs
-      where (ys, _, zs) = splitLookup x xs
-
-<!-- -->
-    fromList
-        = mconcat . map (uncurry singleton)
-
-<!-- -->
-    size
-        = length . toList
-        -- but more efficient, O(1)
-
-<!-- -->
-    null x
-        = size x == 0
-
-<!-- -->
-    filter p
-        = fromList . List.filter (p . fst) . toList
-
-<!-- -->
-    intersection = ...
-
-    difference = ...
-
-Usage examples:
-
-    Text.Pandoc.Emoji
-    -- sudo apt install ttf-ancient-fonts
-
-<!-- -->
-    module Text.Pandoc.Asciify
-
-<!-- -->
-    module Text.Pandoc.MIME
-
-<!-- -->
-    -- Text.Pandoc.Definition
-    newtype Meta = Meta { unMeta :: M.Map String MetaValue }
-
-<!-- -->
-    -- Text.Pandoc.MediaBag
-    -- | A container for a collection of binary resources, with names and
-    -- mime types.
-    newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
-
-<!-- -->
-    Data.Map   -->   Data.Map.Lazy
-    Data.Map.Strict     -- not used in Pandoc
 
 ### `Seq`
 
-    module Data.Sequence
+`Seq c` is isomorphic to `[c]` but the access of elements by position is more efficient.
 
-semantics:
+Basic operations:
 
-        Seq a       ~      [a]
-
-basic operations:
-
-    empty       :: Seq a                     -- = mempty
+    empty       :: Seq a
     singleton   :: a -> Seq a
-    (><)        :: Ord a => Seq a -> Seq a -> Seq a   -- = (<>)
+    (><)        :: Ord a => Seq a -> Seq a -> Seq a
 
     splitAt     :: Ord a => Int -> Seq a -> (Seq a, Seq a)
+
+    length      :: Seq a -> Int
 
     viewl       :: Seq a -> ViewL a
 
@@ -2273,220 +2134,109 @@ basic operations:
         | Seq a :> a    -- ^ the sequence minus the rightmost element,
                         -- and the rightmost element
 
-other operations:
 
-    x <| xs                     -- O(1)
-        = singleton x <> xs
-
-<!-- -->
-    xs |> x                     -- O(1)
-        = xs <> singleton x
-
-<!-- -->
-    fromList
-        = foldr (<>) mempty
-        -- = mconcat
-
-<!-- -->
-    toList = ...
-
-<!-- -->
-    splitMemberAt :: Ord a => Int -> Seq a -> (Seq a, Maybe a, Seq a)
-    -- nincs, de lehet definiálni
-
-<!-- -->
-    lookup i xs
-        = b
-      where (_, b, _) = splitMemberAt xs
-
-<!-- -->
-    deleteAt x xs
-        = ys <> zs
-      where (ys, _, zs) = splitMemberAt x xs
-
-<!-- -->
-    fromList
-        = mconcat . map singleton
-
-<!-- -->
-    lenght
-        = List.length . toList
-        -- but more efficient, O(1)
-
-<!-- -->
-    null x
-        = size x == 0
-
-<!-- -->
-    filter p
-        = fromList . List.filter p . toList
-
-<!-- -->
-    take, drop, ...
-
-Pandoc source code examples:
-
-    module Text.Pandoc.Builder
-
-    ...
-
-    import Data.Sequence (Seq, (|>), viewr, viewl, ViewR(..), ViewL(..))      -- used unqualified
-    import qualified Data.Sequence as Seq    -- everything else used qualified like Seq.singleton
-
-    ...
-
-    -- wrap Seq to be able to override the Monoid instance
-    newtype Many a = Many { unMany :: Seq a }
-
-    ...
-
-    singleton :: a -> Many a
-    singleton = Many . Seq.singleton    -- usage of Many to wrap
-
-    ...
-
-    isNull :: Many a -> Bool
-    isNull = Seq.null . unMany          -- usage of unMany
-
-    ...
-
-    type Inlines = Many Inline
-    type Blocks  = Many Block
-
-    ...
-
-    deriving instance Monoid Blocks          -- inherit  Monoid (Seq Block)
-
-    instance Monoid Inlines where            -- override  Monoid (Seq Inline)
-      mempty = Many mempty
-
-      -- smart mappend
-      (Many xs) `mappend` (Many ys) =        -- usage of Many to unwrap
-        case (viewr xs, viewl ys) of
-          (EmptyR, _) -> Many ys
-          (_, EmptyL) -> Many xs
-          (xs' :> x, y :< ys') -> Many (meld `mappend` ys')
-            where meld = case (x, y) of
-              (Space, Space)     -> xs' |> Space          -- Space behaves like maring in HTML
-              (Space, SoftBreak) -> xs' |> SoftBreak      -- SoftBreak swallows Space on left
-              (SoftBreak, Space) -> xs' |> SoftBreak      -- SoftBreak swallows Space on right
-
-              -- automatic de-fragmentation
-              (Str t1, Str t2)                 -> xs' |> Str (t1 <> t2)
-              (Emph i1, Emph i2)               -> xs' |> Emph (i1 <> i2)
-              (Strong i1, Strong i2)           -> xs' |> Strong (i1 <> i2)
-              (Subscript i1, Subscript i2)     -> xs' |> Subscript (i1 <> i2)
-              (Superscript i1, Superscript i2) -> xs' |> Superscript (i1 <> i2)
-              (Strikeout i1, Strikeout i2)     -> xs' |> Strikeout (i1 <> i2)
-
-              -- LineBreak swallows Space and SoftBreak
-              (Space, LineBreak)     -> xs' |> LineBreak
-              (LineBreak, Space)     -> xs' |> LineBreak
-              (SoftBreak, LineBreak) -> xs' |> LineBreak
-              (LineBreak, SoftBreak) -> xs' |> LineBreak
-
-              (SoftBreak, SoftBreak) -> xs' |> SoftBreak -- SoftBreak behaves like maring in HTML
-
-              _ -> xs' |> x |> y                        -- every other cases: like normal mappend
-
--   `Seq Inline` is strictly better than `[Inline]` as a representation
-    of `Inlines`
-    -   O(1) access of the last elem in `Inlines`
-    -   O(1) concatenation of `Inlines`
-
-Examples of `Monoid Inlines` usage: see later
-
-    -- | Trim leading and trailing spaces and softbreaks from an Inlines.
-    trimInlines :: Inlines -> Inlines
-    trimInlines (Many ils) = Many $ Seq.dropWhileL isSp $
-                                Seq.dropWhileR isSp $ ils
-      where isSp Space = True
-            isSp SoftBreak = True
-            isSp _ = False
-
-<!-- -->
-    -- | Convert a 'String' to 'Inlines', treating interword spaces as 'Space's
-    -- or 'SoftBreak's.  If you want a 'Str' with literal spaces, use 'str'.
-    text :: String -> Inlines
-    text = fromList . map conv . breakBySpaces
-
-      where breakBySpaces = groupBy sameCategory
-
-            sameCategory x y = (is_space x && is_space y) ||
-                               (not $ is_space x || is_space y)
-
-            conv xs | all is_space xs =
-               if any is_newline xs
-                  then SoftBreak
-                  else Space
-            conv xs = Str xs
-
-            is_space ' '    = True
-            is_space '\r'   = True
-            is_space '\n'   = True
-            is_space '\t'   = True
-            is_space _      = False
-
-            is_newline '\r' = True
-            is_newline '\n' = True
-            is_newline _    = False
-
-Example usage:
-
-    Prelude Text.Pandoc.Builder> text "hello world!"
-    Many {unMany = fromList [Str "hello",Space,Str "world!"]}
-
-<!-- -->
-    Prelude Text.Pandoc.Builder> text " hello " <> text " world "
-    Many {unMany = fromList [Space,Str "hello",Space,Str "world",Space]}
-
-`str` does not process the `String`:
-
-    str :: String -> Inlines
-    str = singleton . Str
-
-<!-- -->
-    Prelude Text.Pandoc.Builder> str "hello world!"
-    Many {unMany = fromList [Str "hello world!"]}
-
-
-## Abstract operations
+## Generic operations on data structures
 
 ### `Monoid` type class
 
-TODO
+A data type has a `Monoid` instance if we pick two operations which behave like
+`(++)` and `[]` for lists:
 
+    (xs ++ ys) ++ zs == xs ++ (ys ++ zs)         -- associativity
+            [] ++ xs == xs                       -- left unit
+            xs ++ [] == xs                       -- right unit
+
+The operation which is similar to `(++)` and `[]` are called `mappend` and `mempty`.
+
+Lists are of course monoids:
+
+    instance Monoid [a]
+
+This means the we can use `mappend` instead of `(++)` and `mempty` instead of `[]`.
+
+The advantage of monoids is the possibility to
+define generic operations on all monoids.
+Every definition which can be given with `(++)` and `[]` alone can be generalized
+to data structures with `Monoid` instance.
+
+For example,
+
+    concat :: [[a]] -> [a]
+    concat [] = []
+    concat (x: xs) = x ++ concat xs
+
+can be generalized as
+
+    mconcat :: Monoid m => [m] -> m
+    mconcat [] = mempty
+    mconcat (x: xs) = x `mappend` mconcat xs
+
+This means that if we define `mempty` and `mappend` for a specific data structure then we
+get `mconcat` for free for that data structure.
+
+Notable `Monoid` instances defined already:
+
+    instance Monoid [a]
     instance Monoid Text
     instance Monoid ByteString
+    instance Ord a => Monoid (Set a)
+    instance Ord a => Monoid (Map a b)
+    instance Ord a => Monoid (Seq a)
 
 #### `Sum` monoid
 
-[`Data.Monoid`](https://hackage.haskell.org/package/base/docs/Data-Monoid.html)
+There are several data combinators defined only to override the type class instances
+on the underlying data structure. These data combinators are usually defined with `newtype`.
+
+For example, [`Data.Monoid`](https://hackage.haskell.org/package/base/docs/Data-Monoid.html)
 defines:
 
-    newtype Sum a = Sum { getSum :: a }
+    newtype Sum c = Sum { getSum :: c }
 
-<!-- -->
+`Sum c` is isomorphic to `c`, but the difference is that `Sum c` has a dedicated `Monoid`
+instance:
+
     instance Num a => Monoid (Sum a)
+
+`mappend` and `mempty` behaves like `(+)` and `0` on the underlying data structure.
 
 Usage example:
 
-    -- foldMap :: Monoid m => (a -> m) -> t a -> m
-    getSum $ foldMap Sum [1,2,3,4]
+    getSum (mconcat $ map Sum [1,2,3,4,5,6,7,8,9,10])  ==  55
+
+#### `Endo` monoid
+
+`Endo` is another data combinator which is defined to override the type class instances of a type.
+
+`Endo c` is isomorphic to `(c -> c)`:
+
+    newtype Endo c = Endo { appEndo :: c -> c }
+
+The `Monoid` instance on `Endo c`:
+
+    instance Monoid (Endo c) where
+        mempty = Endo id
+        Endo f `mappend` Endo g = Endo (f . g)
+
+Usage example:
+
+    appEndo (mconcat $ replicate 10 $ Endo (*2)) 1  ==  1024
+
 
 ### `Foldable` type class
 
+Type `t` has a `Foldable` instance if `t` can be seen as a list.  
 The essence of the `Foldable` class:
 
-    class Foldable t where      -- t can be seen as a list
+    class Foldable t where
       toList :: t a -> [a]
 
-Some predefined instances:
+Some instances:
 
     instance Foldable []
     instance Foldable Set
-    instance Foldable Maybe   -- Maybe value as list with zero or one element
-    instance Foldable Complex -- toList :: Complex a -> [a],  the complex number as a 2-elem list 
+    instance Foldable Maybe   -- can be seen as list with 0 or 1 element
+    instance Foldable Complex -- the complex number as a 2-elem list 
 
 Functions which consume lists are generalized to `Foldable`:
 
@@ -2499,16 +2249,14 @@ Functions which consume lists are generalized to `Foldable`:
     foldl   :: (Foldable t) => (b -> a -> b) -> b -> t a -> b
     ...
 
-Unfortunately, the performance of these functions could drop
-dramatically if we define them with `toList` (and not with `Set.size`,
-for example):
+The performance of these functions would drop
+dramatically if they were defined with `toList`:
 
     -- just an example
     length  :: (Foldable t) => t a -> Int
     length = List.length . toList               -- wrong, List.length is an O(n) operation
 
-To be able to specialize `length` on `Set`, the `length` method was
-included into `Foldable`:
+To fix this performance issue, the `length` method was included in `Foldable`:
 
     class Foldable t where      -- t can be seen as a list
       toList :: t a -> [a]
@@ -2520,7 +2268,7 @@ included into `Foldable`:
       ...
 
 The similar happened to the other functions, so eventually `Foldable`
-looks like this...
+has got lots of members:
 
     class Foldable t where
         toList  :: t a -> [a]
@@ -2539,7 +2287,8 @@ looks like this...
         fold    :: Monoid m => t m -> m                 -- general fold
         foldMap :: Monoid m => (a -> m) -> t a -> m
 
-Most members has a default implementation (omitted from above):
+This is not a problem in practice however, because
+most members have a default implementation:
 
     class Foldable t where
         ...
@@ -2551,8 +2300,8 @@ Most members has a default implementation (omitted from above):
     any :: Foldable t => (a -> Bool) -> t a -> Bool
     any p = ... -- defined with foldMap, see later
 
-As a result, `Foldable` instances need to define at least `foldMap` or
-`foldr`.
+The final result is that `Foldable` instances need to define at least `foldMap` or
+`foldr` and the other members are automatically defined.
 
 Example instance:
 
@@ -2563,7 +2312,7 @@ Example instance:
        foldMap f (Leaf x) = f x
        foldMap f (Node l k r) = foldMap f l `mappend` f k `mappend` foldMap f r
 
-Good to see how `foldMap` and `foldr` are defined by each-other:
+It is a good exercise to implement `foldMap` and `foldr` with each-other:
 
     foldMap :: Monoid m => (a -> m) -> t a -> m
     foldMap f = foldr (mappend . f) mempty
@@ -2572,30 +2321,27 @@ Good to see how `foldMap` and `foldr` are defined by each-other:
     foldr :: (a -> b -> b) -> b -> t a -> b
     foldr f z t = appEndo (foldMap (Endo . f) t) z
 
-`Endo` is defined in `Data.Monoid`:
+The following example helps to understand how the `foldMap`-defined `foldr` works:
 
-    newtype Endo a = Endo { appEndo :: a -> a }
+       foldr (+) 0 [1,2,3]
+    == appEndo (foldMap (Endo . (+)) [1,2,3]) 0
+    == appEndo (Endo (1+) <> Endo (2+) <> Endo (3+)) 0
+    == appEndo (Endo ((1+) . (2+) . (3+))) 0
+    == ((1+) . (2+) . (3+)) 0
+    == (1+) ((2+) ((3+) 0))
+    == 6
 
-    instance Monoid (Endo a) where
-        mempty = Endo id
-        Endo f `mappend` Endo g = Endo (f . g)
+A usage example for `foldMap`:
 
-Help to understand how it works:
+    getSum (foldMap Sum [1..10]) == 55
 
-        foldr (+) 0 [1,2,3]
-     == appEndo (foldMap (Endo . (+)) [1,2,3]) 0
-     == appEndo (Endo (1+) <> Endo (2+) <> Endo (3+)) 0
-     == appEndo (Endo ((1+) . (2+) . (3+))) 0              -- appEndo cancels Endo
-     == ((1+) . (2+) . (3+)) 0
-     == (1+) ((2+) ((3+) 0))
-     == 6
 
 ### `Functor` type class
 
 `Functor` could be called `Mappable` because it is a generalization of
-`map` and similar functions:
+the `map` function.
 
-    map :: (a -> b) -> [a] -> [b]
+First define `map` for `Tree`s:
 
     data Tree a = Empty | Leaf a | Node (Tree a) a (Tree a)
 
@@ -2604,9 +2350,9 @@ Help to understand how it works:
     mapTree f (Leaf x) = Leaf (f x)
     mapTree f (Node l k r) = Node (mapTree f l) (f k) (mapTree f r)
 
-The generalized function should be something like:
+The general `map` function should be something like:
 
-    fmap :: Functor t => (a -> b) -> t a -> t b    -- read Functor as Mappable
+    fmap :: Functor t => (a -> b) -> t a -> t b
 
 `fmap` has this type indeed. `fmap` is a class member, so the actual
 definition looks like
@@ -2621,37 +2367,24 @@ There is an operator form for `fmap`:
 
     infixl 4 <$>
 
-Some predefined instances
+Notable `Funtor` instances:
 
-    instance Functor [] -- Defined in ‘GHC.Base’
-    instance Functor Maybe -- Defined in ‘GHC.Base’
-    instance Functor ((,) a) -- Defined in ‘GHC.Base’
+    instance Functor []         -- Defined in ‘GHC.Base’
+    instance Functor Maybe      -- Defined in ‘GHC.Base’
+    instance Functor ((->) r)   -- Defined in ‘GHC.Base’
+    instance Functor ((,) a)    -- Defined in ‘GHC.Base’
     instance Functor (Either a) -- Defined in ‘Data.Either’
-    instance Functor ((->) r) -- Defined in ‘GHC.Base’
-    instance Functor IO -- Defined in ‘GHC.Base’
 
-Use examples:
+Usage examples:
 
-    Prelude> even <$> [1,2,3]
-    [False,True,False]
-    Prelude> even <$> Just 5
-    Just False
-    Prelude> even <$> Nothing
-    Nothing
-    Prelude> even <$> (1,2)
-    (1,True)
-    Prelude> even <$> Left 1
-    Left 1
-    Prelude> even <$> Right 2
-    Right True
-    Prelude> (even <$> (+1)) 3
-    True
+    (even <$> [1,2,3])  ==  [False,True,False]
+    (even <$> Just 5)   ==  Just False
+    (even <$> Nothing)  ==  Nothing
+    (even <$> (+1)) 3   ==  True
+    (even <$> (1, 2))   ==  (1, True)    -- affects the second element only
+    (even <$> Left 1)   ==  Left 1       -- Left is not affected
+    (even <$> Right 2)  ==  Right True
 
-<!-- -->
-    Prelude Data.Char> isAscii <$> getChar
-    2True
-
-Pandoc use examples: a lot, TODO
 
 <!--
 ## Date and Time
@@ -2665,39 +2398,40 @@ Pandoc use examples: a lot, TODO
 ## Bits
 -->
 
-# Computation structures
+# Computations
 
-A computation structure, or just computation, is a representation of specific tasks.
+A computation is a description how to solve a specific task.
 
 ## Computation vs. data
 
 Similiarties between computations and data structures:
 
 -   both have types
--   both can be combined from smaller parts into more complex ones with different combinators
+-   both can be combined from smaller parts with different combinators
 
 Differences between computations and data structures:
 
 -   data is for inspection; computations are for execution
 -   (as a consequence) some computations cannot be pattern matched on
 
-Interstingly, `Maybe`, `Either` and `[]` can be seen either as a data structure or as a computation at the same time.
+Interestingly, `Maybe`, `Either` and `[]` can be seen either as a data structure or as a computation at the same time.
 
 Examples:
 
--   A `Maybe Int` value can be seen as a computation which gives an `Int` but which may fail doing so.
+-   A `Maybe Int` value can be seen as a computation which gives an `Int` but which may fail.
 -   An `Either String Int` value can be seen as a computation which gives an `Int` but which may fail
     with a `String` error message.
--   An `[Int]` value can be seen as a computation which gives an `Int` but which is non-deterministic.
+-   An `[Int]` value can be seen as a computation which gives a non-deterministic `Int`.
 
-A bit more detailed example.  
-There is only syntactic difference between the two following definitions
-from the compiler's view, but the different syntax suggests different interpretations:
+A bit more detailed example for lists as non-deterministic computations is the following.
+
+There is only syntactic difference between the following definitions
+from the compiler's view, but the different syntax suggests different interpretations too:
 
     -- the list of all Pythagorean triples
     pythagoreanTriples :: [(Int, Int, Int)]
-    pythagoreanTriples
-        [ (a,b,c)               -- each element has form (a, b, c) where
+    pythagoreanTriples =
+        [ (a, b, c)             -- each Pythagorean triple has form (a, b, c) where
         | c <- [1..]            -- c is any positive natural number
         , b <- [1..c]           -- b is any natural number between 1 and c
         , a <- [1..b]           -- a is any a natural number between 1 and b
@@ -2711,10 +2445,12 @@ from the compiler's view, but the different syntax suggests different interpreta
         b <- [1..c]                 -- let b be a natural number between 1 and c
         a <- [1..b]                 -- let a be a natural number between 1 and b
         guard (a^2 + b^2 == c^2)    -- such that a^2 + b^2 == c^2
-        return (a,b,c)              -- let the result be (a, b, c)
+        return (a, b, c)            -- let the result be (a, b, c)
 
 
 ## `IO` actions
+
+`IO` actions are computations which may involve any kind of I/O actions.
 
 ### The `IO` type constructor
 
@@ -2723,7 +2459,7 @@ from the compiler's view, but the different syntax suggests different interpreta
     IO :: * -> *
 
 An `IO a` value can be seen as a *code of an interactive program* which returns an
-`a`-typed value when the program is executed.
+`a` value when the program is executed.
 
 We say **IO action** or just **action** instead of "code of an
 interactive program".
@@ -2733,7 +2469,7 @@ Examples of types constructed with `IO`, giving an element for each:
     -- getChar  is the action which waits for a character and returns it
     getChar :: IO Char
 
-    -- (putChar c) is the action of putting c on the console
+    -- (putChar c) is the action of putting c to the console
     putChar :: Char -> IO ()
 
     -- (sequence xs) is the action which performs actions xs and returns their collected results
@@ -2750,42 +2486,44 @@ Examples of types constructed with `IO`, giving an element for each:
 
 Examples of actions constructed from smaller actions:
 
-    putStr :: String -> IO ()
+    putStr :: String -> IO ()       -- put a string to the console
     putStr s = sequence_ (map putChar s)
 
-    putStrLn :: String -> IO ()
+    putStrLn :: String -> IO ()     -- put a string and a newline to the console
     putStrLn s = putStr (s ++ "\n")
 
-    getLine :: IO String
-    getLine = join (f <$> getChar)  -- instance Functor IO
+    getLine :: IO String            -- collects input until the first newline
+    getLine = join (f <$> getChar)      -- (<$>) is fmap
       where
         f :: Char -> IO String
         f '\n' = pure []
         f c = (c:) <$> getLine
 
-You may noticed that there is `instance Functor IO`.
+You may have noticed that there is a `Functor` instance of `IO`.
 
 ### Performing actions
 
-Actions i.e. codes of interactive computations can be run in two ways:
+Actions i.e. codes of interactive computations are runnable in two ways:
 
 A)  Compile & run the code
 
     1.  define `main :: IO ()`
-    2.  compile the definition
-    3.  run the resulted executable program (maybe several times)
+    2.  compile the module containing `main`
+    3.  run the produced executable program (maybe several times)
 
-B)  Interpret the code by entering the action in the Haskell interpreter
+B)  Interpret the code
+
+    -   enter the action in the Haskell interpreter
 
 Example A, step 1, definition of `main`:
 
-    ~~~~~~~~~~~~~~ X.hs
-    main :: IO () -- main should have this type
+    ---------- contents of X.hs ----------
+    main :: IO ()      -- main should have this type
     main = join $ f . read <$> getLine
       where
         f :: Int -> IO ()
+        -- print "Hello world!" n times
         f n = sequence_ $ replicate n $ putStrLn "Hello world!"
-    ~~~~~~~~~~~~~~
 
 Example A, step 2, compiling `main`:
 
@@ -2826,10 +2564,7 @@ Haskell an impure language:
 
         s' = [unsafePerformIO getChar, unsafePerformIO getChar]
 
-### Basic combinators
-
-There are elementary actions and a set of basic combinators with which a
-wide range of actions can be constructed.
+### Elementary actions
 
 Some elementary actions are the following:
 
@@ -2844,14 +2579,20 @@ Some elementary actions are the following:
     -- + rendering images on the screen
     -- + communication between programs, http, ...
 
-The set of basic combinators is much smaller:
+
+### Combinators for `IO` actions
+
+The set of basic combinators:
 
     pure   :: a             -> IO a                 -- actions without side effects
 
+<!-- -->
     (<$>)  :: (a -> b)      -> IO a -> IO b         -- apply a function on the returned value
 
+<!-- -->
     liftA2 :: (a -> b -> c) -> IO a -> IO b -> IO c -- combine two actions with a function
 
+<!-- -->
     join   :: IO (IO a) -> IO a                     -- flatten an action-returning action
 
 Other combinators can be defined on top of the basic combinators.\
@@ -2862,18 +2603,23 @@ defined as:
     sequence [] = pure []
     sequence (a: as) = liftA2 (:) a (sequence as)
 
+<!-- -->
     (>>) :: IO a -> IO b -> IO b
     ia >> ib = liftA2 (\_ b -> b) ia ib         -- or:   (>>) = liftA2 (const id)
 
+<!-- -->
     sequence_ :: [IO a] -> IO ()
     sequence_ [] = pure ()
     sequence_ (a: as) = a >> sequence_ as
 
+<!-- -->
     (<*>) :: IO (a -> b) -> IO a -> IO b
     iab <*> ia = liftA2 ($) iab ia              -- or:   (<*>) = liftA2 ($)
 
+<!-- -->
     infixl 4 <$>, <*>
 
+<!-- -->
     liftA5 :: (a -> b -> c -> d -> e -> f) -> IO a -> IO b -> IO c -> IO d -> IO e -> IO f
     liftA5 f ia ib ic id ie  =  f <$> ia <*> ib <*> ic <*> id <*> ie
     -- f :: a -> (b -> (c -> (d -> (e -> f))))
@@ -2883,9 +2629,11 @@ defined as:
     -- (((f <$> ia) <*> ib) <*> ic) <*> id :: IO (e -> f)
     -- ((((f <$> ia) <*> ib) <*> ic) <*> id) <*> ie :: IO f
 
+<!-- -->
     join2 :: IO (IO (IO a)) -> IO a
     join2 iiia = join (join iiia)          -- or: join2 = join . join
 
+<!-- -->
     (>>=) :: IO a -> (a -> IO b) -> IO b
     ia >>= f = join (f <$> ia)
 
@@ -2945,31 +2693,37 @@ Example 3:
 
 ### Random value generation
 
+`(Gen a)` is the type of random generators of `a`-typed values.  
+We say just generator instead of random generator.
+
 `Gen` is a type constructor:
 
     Gen :: * -> *
 
-`Gen a` is the type of random generators of `a`-typed values.
-
-We say just generator instead of random generator.
-
-Examples of types constructed with `Gen`, giving an element for each:
+Examples of types constructed with `Gen`, giving an element for each:  
+(These functions are defined in `Test.QuickCheck.Gen`. Note that `Gen` values cannot
+be printed but you can visualize them with `generate`, see the next section.)
 
     -- Generates one of the given values.
     elements :: [a] -> Gen a
 
+<!-- -->
     -- Chooses one of the given generators, with a weighted random distribution.
     frequency :: [(Int, Gen a)] -> Gen a
 
+<!-- -->
     -- Generates a value that satisfies a predicate.
     suchThat :: Gen a -> (a -> Bool) -> Gen a
 
+<!-- -->
     -- Generates a random element with each combinator and collect their result in a list
     sequence :: [Gen a] -> Gen [a]
 
+<!-- -->
     -- Generates always the given element (not random)
     pure :: a -> Gen a
 
+<!-- -->
     -- Generates a generator randomly, then generates an element with it
     join :: Gen (Gen a) -> Gen a
 
@@ -2978,18 +2732,20 @@ Examples of generators constructed from smaller generators:
     vectorOf :: Int -> Gen a -> Gen [a]
     vectorOf n gen = sequence (replicate n gen)
 
+<!-- -->
     infiniteListOf :: Gen a -> Gen [a]
     infiniteListOf gen = sequence (repeat gen)
 
+<!-- -->
     -- Generates a non-empty list of random length. The maximum length is given explicitly.
     listOfSize :: Int -> Gen a -> Gen [a]
-    listOfSize n gen = join (f <$> elements [0..n])       -- instance Functor Gen
+    listOfSize n gen = join (f <$> elements [0..n])
       where
         f k = vectorOf k gen
 
-You may noticed that there is `instance Functor Gen`.
+You may have noticed that there is a `Functor` instance for `Gen`.
 
-#### Performing random generation
+#### Performing random value generation
 
 We can generate one random value with generate:
 
@@ -3045,10 +2801,13 @@ combinators of `IO` actions:
 
     pure   :: a             -> Gen a                   -- give back the given element, no choice
 
+<!-- -->
     (<$>)  :: (a -> b)      -> Gen a -> Gen b          -- apply a function on the result
 
+<!-- -->
     liftA2 :: (a -> b -> c) -> Gen a -> Gen b -> Gen c -- combine two generator result
 
+<!-- -->
     join   :: Gen (Gen a) -> Gen a                     -- flatten an generator-returning generator
 
 Definitely, there is a structure here which is worth to be abstracted
@@ -3059,65 +2818,126 @@ out.
 In fact, there are several type classes based on the above functions,
 each of them has its own merits:
 
-    (a -> b) -> f a -> f b              | | | | | |Functor   |
-    (a -> b -> c) -> f a -> f b -> f c  | | | | |Apply       |
-    a -> f a                            | | | |Applicative   |
-    f (f a) -> f a                      | | |Monad           -
-    f a                                 | |MonadFail         |
-    f a -> f a -> f a                   |MonadPlus           |Alternative
+    (<$>)  :: (a -> b) -> f a -> f b              | | | |Functor     |
+    liftA2 :: (a -> b -> c) -> f a -> f b -> f c  | | |              |
+    pure   :: a -> f a                            | | |Applicative   |
+    join   :: f (f a) -> f a                      | |Monad           -
+    mzero  :: f a                                 |                  |
+    mplus  :: f a -> f a -> f a                   |MonadPlus         |Alternative
 
-Let's look at them one-by-one.
+The idea is the following.  
+`(f t)` denotes a computation which returns a `t` value.
+
+-   `(<$>)` applies a pure function on the result of a computation.
+
+    This set of combinators is called `Functor`.
+
+-   `liftA2` combines the results of two sub-computations  
+    `pure` creates a computation which gives back a specific value
+
+    With `liftA2`, `pure` and `(<$>)` one can combine finite many computations arbitrarily,
+    but it is not possible to pattern match on the results of computations.
+
+    This set of combinators is called `Applicative`.
+
+-   `join` with `(<$>)` makes possible to pattern match on the result of a computation:
+    If `m` is computation resulting a `t` value and `f` is a function on `t` values
+    resulting computation, then `join (f <$> m)` is a computation which
+    invokes `m` and then invokes `f v` where `v` is the result of `m`. Here `f` is
+    able to pattern match on `v`.
+
+    With `join`, `liftA2`, `pure` and `(<$>)` one can construct dynamic computations,
+    i.e. computations where the choice of the next sub-computation may depend on the result of the previous sub-computations.
+
+    This set of combinators is called `Monad`.
+
+-   `mzero` makes possible to finish a computation in the middle.  
+    `mplus` makes possible to add alternative directions to the computation.
+
+    With `mzero`, `mplus`, `liftA2`, `pure` and `(<$>)` one can construct
+    non-deterministic computations.
+
+    This set of combinators is called `Alternative`.
+
+    With `mzero`, `mplus`, `join`, `liftA2`, `pure` and `(<$>)` one can construct
+    dynamic non-deterministic computations.
+
+    This set of combinators is called `MonadPlus`.
+
 
 ### `Functor`
+
+Class definition:
 
     class Functor f where
       fmap :: (a -> b) -> f a -> f b
 
-      (<$) :: a        -> f b -> f a
-      (<$) = fmap . const
+      -- replace the result of a computation
+      (<$) :: a -> f b -> f a
+      (<$) = fmap . const               -- default class member
 
-<!-- -->
-    fmap id == id
-    fmap (g . h) == fmap g . fmap h
+You may expect that all `Functor` instance satisfy the following laws.
+$f$ `≡` $g$ means that $f$ and $g$ have the same behaviour.
 
-<!-- -->
+    fmap id ≡ id
+    fmap (g . h) ≡ fmap g . fmap h
+
+Notable definitions:
+
     void :: Functor f => f a -> f () 
     void x = () <$ x
 
 ### `Applicative`
+
+Class definition:
 
     class Functor f => Applicative f where
       pure  :: a -> f a
       infixl 4 <*>, *>, <*
       (<*>) :: f (a -> b) -> f a -> f b
      
-      (*>) :: f a -> f b -> f b
-      a1 *> a2 = (id <$ a1) <*> a2
-     
+      -- combine two computations and keep the result of the first
       (<*) :: f a -> f b -> f a
       (<*) = liftA2 const
 
-<!-- -->
+      -- combine two computations and keep the result of the second
+      (*>) :: f a -> f b -> f b
+      a1 *> a2 = (id <$ a1) <*> a2
+
+Notable definitions:
+
+    -- combine the results of two computations
     liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
 
 <!-- -->
+    -- conditionally do a computation
     when :: Applicative f => Bool -> f () -> f () 
 
 <!-- -->
+    -- opposite of when
     unless :: Applicative f => Bool -> f () -> f ()
 
 <!-- -->
+    -- do several computations and collect their results
     sequenceA :: Monad m => [m a] -> m [a]
 
 <!-- -->
-      unit :: f ()
-      (**) :: f a -> f b -> f (a,b)
+    -- computation which does nothing interesting and results a () value
+    unit :: f ()
+
+<!-- -->
+    -- pair the results of two computations
+    (**) :: f a -> f b -> f (a, b)
+
+Laws ($f$ ≅ $g$ means that $f$ and $g$ are isomorphic):
 
     unit ** v ≅ v
     u ** unit ≅ u
     u ** (v ** w) ≅ (u ** v) ** w
 
 ### `Monad`
+
+Class definition:
 
     class Applicative m => Monad m where
       (>>=)  :: m a -> (a -> m b) -> m b
@@ -3129,29 +2949,28 @@ Let's look at them one-by-one.
      
       fail   :: String -> m a               -- will be moved to MonadFail
 
-<!-- -->
-    (=<<) :: Monad m => (a -> m b) -> m a -> m b        -- effectful fmap
+Notable definitions:
+
+    -- effectful fmap
+    (=<<) :: Monad m => (a -> m b) -> m a -> m b
     (=<<) = flip (>>=)
 
 <!-- -->
-    (<=<) :: Monad m => (b -> m c) -> (a -> m b) -> a -> m c   -- effectful composition
+    -- effectful function composition
+    (<=<) :: Monad m => (b -> m c) -> (a -> m b) -> a -> m c
     (f <=< g) a = f =<< g a
 
 <!-- -->
+    -- flipped (<=<)
     (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
     (>=>) = flip (<=<)
 
-Monad laws:
+Laws:
 
-         pure <=< f  =  f                   -- like       id . f = f
-         f <=< pure  =  f                   -- like       f . id = f
-    (f <=< g) <=< h  =  f <=< (g <=< h)     -- like  (f . g) . h = f . (g . h)
+         pure <=< f  ≡  f                   -- like       id . f ≡ f
+         f <=< pure  ≡  f                   -- like       f . id ≡ f
+    (f <=< g) <=< h  ≡  f <=< (g <=< h)     -- like  (f . g) . h ≡ f . (g . h)
 
-<!-- -->
-    sequence :: Monad m => [m a] -> m [a]
-
-<!-- -->
-    replicateM :: Monad m => Int -> m a -> m [a]
 
 #### `State` monad
 
@@ -3243,7 +3062,34 @@ Tests:
     Just 3   >>=  (\x -> if odd x then Nothing else Just (x + 1)) == Nothing
     Just 4   >>=  (\x -> if odd x then Nothing else Just (x + 1)) == Just 5
 
-### `do` notation
+### `Alternative`
+
+Class definition:
+
+    class Applicative f => Alternative f where
+      empty :: f a
+      (<|>) :: f a -> f a -> f a
+     
+      some :: f a -> f [a]
+      many :: f a -> f [a]
+
+    some v = (:) <$> v <*> many v
+    many v = some v <|> pure []
+
+Laws:
+
+        empty <|> x ≡ x
+        x <|> empty ≡ x
+    (x <|> y) <|> z ≡ x <|> (y <|> z)
+
+Notable definitions:
+
+    -- (guard b) returns () if b is True, and it is mzero if b is False.
+    guard :: Alternative f => Bool -> f ()
+
+<!-- -->
+    -- One or none
+    optional :: Alternative f => f a -> f (Maybe a)
 
 ### `Traversable`
 
@@ -3276,29 +3122,6 @@ Usage example:
 <!-- -->
     Main>  assignIds $ Map.fromList [("a",10),("b",4),("c",20)]
     fromList [("a",(0,10)),("b",(1,4)),("c",(2,20))]
-
-### `Alternative`
-
-    class Applicative f => Alternative f where
-      empty :: f a
-      (<|>) :: f a -> f a -> f a
-     
-      some :: f a -> f [a]
-      many :: f a -> f [a]
-
-    some v = (:) <$> v <*> many v
-    many v = some v <|> pure []
-
-<!-- -->
-    empty <|> x = x
-    x <|> empty = x
-    (x <|> y) <|> z = x <|> (y <|> z)
-
-<!-- -->
-    guard :: Alternative f => Bool -> f ()
-
-<!-- -->
-    optional :: Alternative f => f a -> f (Maybe a)
 
 ## Monad transformers
 
@@ -3412,52 +3235,86 @@ The actual `throwError` is more polymorphic (in an ad-hoc way).
 
 ## `QuickCheck`
 
+`QuickCheck` is a property based testing library for Haskell, which means
+that the programmer defined properties of functions are automatically checked for random inputs.
+
 ### Quickly check properties
 
-    quickCheck :: Testable prop => prop -> IO ()
-
-Examples:
+The main top-level function of `QuickCheck` is `quickCheck`.  
+Example usage:
 
     Test.QuickCheck>  quickCheck $ \a b c -> (a + b) + c == a + (b + c)
     +++ OK, passed 100 tests.
 
-<!-- -->
+Here 100 random integer values was generated for each of `a`, `b` and `c` and
+`(a + b) + c == a + (b + c)` was evaluated to `True` for all of them, so the test
+succeeded.
+
+Another example usage:
+
     Test.QuickCheck>  quickCheck $ \a -> a == a + a
-    *** Failed! Falsifiable (after 2 tests):                  
+    *** Failed! Falsifiable (after 2 tests):
     1
 
-The `Testable` type class has instances:
+Here 2 random integer values was generated for `a` and for the second value, which was 1,
+`a == a + a` was not evaluated to `True`, so the test failed.
+
+The type of `quickCheck` is:
+
+    quickCheck :: Testable p => p -> IO ()
+
+The `Testable` type class has the following instances, for example:
 
     instance Testable Bool
-    instance (Arbitrary a, Show a, Testable prop) => Testable (a -> prop)
+    instance (Arbitrary a, Show a, Testable p) => Testable (a -> p)
 
-The `Arbitrary` class has instances:
+This means that an `(a -> b -> c -> Bool)` function is `Testable` if
+there are `Arbitrary` and `Show` instances for `a`, `b` and `c`.
+
+The `(Arbitrary a)` constraint means that it is possible to generate random values of
+the `a` type.
+The `Arbitrary` class has the following instances, for example:
 
     instance Arbitrary Bool
     instance Arbitrary Integer
     instance Arbitrary a => Arbitrary [a]
     instance (Arbitrary a, Arbitrary b) => Arbitrary (Either a b)
     instance (Arbitrary a, Arbitrary b) => Arbitrary (a, b)
-    ...
+
+So there is an `Arbitrary` instance for `Integer` which yields that
+a fuction `(Integer -> Integer -> Integer -> Bool)` is testable too.
+
 
 ### Changing generator behaviour
+
+A randomly generated `Integer` value can be 0 too, so the following test will fail:
 
     Test.QuickCheck>  quickCheck $ \a b -> (a `div` b) * b + a `mod` b == a
     *** Failed! Exception: 'divide by zero' (after 1 test):
     0          -- a
     0          -- b
 
-Fix:
+There are sevaral fixes to this problem:
 
-    Test.QuickCheck>  quickCheck $ \a (NonZero b) -> (a `div` b) * b + a `mod` b == a
-    +++ OK, passed 100 tests.
+A)  filter out 0 values in the generated random values for `b`
+B)  change the test case such that if `b == 0` then it becomes `True`
+C)  do not generate 0 values for `b` at all
 
-This works because
+Solution C) is the best, and luckily there is a nice implementation for it.
+The trick is that there is a `NonZero` data combinator, which is just a wrapper
 
     newtype NonZero a = NonZero {getNonZero :: a}
 
-    instance (Num a, Eq a, Arbitrary a) => Arbitrary (NonZero a) where
+which has an overridden `Arbitrary` instance:
+
+    instance (Num c, Eq c, Arbitrary c) => Arbitrary (NonZero c) where
+      -- here we call arbitrary for c but omit zero values
       arbitrary = NonZero <$> (arbitrary `suchThat` (/= 0))
+
+The updated test case which uses `NonZero`:
+
+    Test.QuickCheck>  quickCheck $ \a (NonZero b) -> (a `div` b) * b + a `mod` b == a
+    +++ OK, passed 100 tests.
 
 Other modifier usage examples:
 
@@ -3474,16 +3331,25 @@ Other modifier usage examples:
 
 ### Run more tests
 
+Sometimes it is not enough to run 100 random tests:
+
     Test.QuickCheck Data.List>  quickCheck $ \a -> a < 0.9 || a > 1
     +++ OK, passed 100 tests.
+
+One can specifiy the number of random tests with `withMaxSuccess`:
+
     Test.QuickCheck Data.List>  quickCheck $ withMaxSuccess 10000 $ \a -> a < 0.9 || a > 1
-    *** Failed! Falsifiable (after 307 tests):  
+    *** Failed! Falsifiable (after 307 tests):
     0.9784714901633009
 
 ### Testing higher order functions
 
+Testing higher order functions is interesting because random functions should be
+generated for the inputs.
+Without further explanation, here is an example how to do this with `QuickCheck`:
+
     >  quickCheck $ \(Fn (f :: Int -> Int)) (Fn (g :: Int -> Int)) x -> (f . g) x == (g . f) x
-    *** Failed! Falsifiable (after 3 tests and 20 shrinks):    
+    *** Failed! Falsifiable (after 3 tests and 20 shrinks):
     {_->0}
     {0->1, _->0}
     0
@@ -3497,48 +3363,7 @@ The `Arbitrary` class provides a random generator for each instance:
     class Arbitrary a where
       arbitrary :: Gen a
 
-### Random value generation
-
-    data Gen a
-
-    instance Monad Gen a        -- implies Functor and Applicative
-
-Generator combinators:
-
-    elements :: [a] -> Gen a 
-
-    choose :: Random a => (a, a) -> Gen a  -- for ranges of Char, Double, Float, Int, ...
-
-    frequency :: [(Int, Gen a)] -> Gen a 
-
-    listOf :: Gen a -> Gen [a]
-
-    listOf1 :: Gen a -> Gen [a] 
-
-    suchThat :: Gen a -> (a -> Bool) -> Gen a 
-
-Running a generator:
-
-    generate :: Gen a -> IO a 
-
-For debugging:
-
-    sample :: Show a => Gen a -> IO ()
-
-Example:
-
-    Test.QuickCheck>  sample (arbitrary :: Gen (Either Bool Int))
-    Left False
-    Right (-1)
-    Left False
-    Left True
-    Left False
-    Left True
-    Right (-11)
-    Left False
-    Right 11
-    Left False
-    Right 7
+`Gen` is explained at [Random value generation](#random-value-generation).
 
 ### Sized random value generation
 
@@ -3607,16 +3432,12 @@ We can observe the increasing list sizes with sample too:
 
 <!-- -->
     Test.QuickCheck>  quickCheck $ mapSize (*10) $ \a -> a == take 100 a
-    *** Failed! Falsifiable (after 13 tests and 2 shrinks):      
+    *** Failed! Falsifiable (after 13 tests and 2 shrinks):
     [(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),()
     ,(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),()
     ,(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),()
     ,(),(),(),(),(),(),(),()]
 
-Pandoc uses `resize`, which is the same as `scale` with a constant size:
-
-    resize :: Int -> Gen a -> Gen a 
-    resize n = scale (const n)
 
 # Pandoc's source code
 
@@ -3706,6 +3527,10 @@ can replace the default template by a custom template file.
                 - extensions                                                - extensions
                                                                             - template file
                                                                               - variables
+
+The detailed data flow of pandoc and related main data structures are shown on ref{fig:flow}.
+
+![Main data flow\label{fig:flow}](App.pdf)
 
 Main components of Pandoc and related main data structures are shown on
 \ref{fig:data}. The next sections discuss the components one-by-one.
@@ -3854,10 +3679,6 @@ text. They are moved to the end of the text when the text is rendered.
         | Note [Block]          -- ^ Footnote or endnote
         | ...
 
-#### Other inline elements
-
-Other inline elements (native spans, code blocks, raw elements, embedded
-LaTeX and citations) are discussed later.
 
 ### Block elements
 
@@ -3894,7 +3715,7 @@ Headers with level 1, 2, 3, 4, 5, 6 are supported in HTML output.
         | Header Int Attr [Inline] -- ^ Header - level (integer) and text (inlines)
         | ...
 
-Attributes are discussed later.
+Attributes are discussed in [Attributes](#attributes).
 
 #### Horizontal rule
 
@@ -3905,17 +3726,6 @@ Rendered as a horizontal rule.
         | HorizontalRule        -- ^ Horizontal rule
         | ...
 
-#### Other block elements
-
-TODO: document `Null`
-
-    data Block
-        = ...
-        | Null                  -- ^ Nothing
-        | ...
-
-Other block elements (native divs, code fragments, raw blocks, lists and
-tables) are discussed later.
 
 ### Attributes
 
@@ -3935,8 +3745,7 @@ There are 3 different kind of attributes:
     Other use cases:
 
     -   Headers with the class `unnumbered` will not be numbered.
-    -   Code blocks supports the `numberLines` and `lineAnchors` classes
-        (see later).
+    -   Code blocks supports the `numberLines` and `lineAnchors` classes.
     -   Code blocks and code fragments use classes like `haskell` to set
         the language (for syntax highlighting).
     -   `smallcaps` class is used to write text in small caps
@@ -4011,7 +3820,7 @@ The following attributes are treated specially in writers:
 ### Raw elements
 
 Raw inlines and raw blocks is treated as raw content with the designated
-format. TODO
+format.
 
     data Inline
         = ...
@@ -4028,7 +3837,6 @@ format. TODO
     -- | Formats for raw blocks
     newtype Format = Format String
 
-Example formats: TODO
 
 ### Walking documents
 
@@ -4128,6 +3936,81 @@ This "filter" can be used with pandoc like this:
 > pandoc --filter ./capitalize.hs
 ```
 
+
+### Additional features
+
+The document representation also supports features like
+lists, tables, math formulas, citations
+slide shows, internationalization and filters.
+
+#### Lists
+
+The constructors related to lists in the `Block` data type:
+
+    data Block
+        = ...
+        | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes
+                                -- and a list of items, each a list of blocks)
+        | BulletList [[Block]]  -- ^ Bullet list (list of items, each
+                                -- a list of blocks)
+        | DefinitionList [([Inline],[[Block]])]  -- ^ Definition list
+                                -- Each list item is a pair consisting of a
+                                -- term (a list of inlines) and one or more
+                                -- definitions (each a list of blocks)
+        | ...
+
+List attributes:
+
+    type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
+
+Style of list numbers:
+
+    data ListNumberStyle = DefaultStyle
+                         | Example
+                         | Decimal
+                         | LowerRoman
+                         | UpperRoman
+                         | LowerAlpha
+                         | UpperAlpha deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
+
+Delimiter of list numbers:
+
+    data ListNumberDelim = DefaultDelim
+                         | Period
+                         | OneParen
+                         | TwoParens deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
+
+#### Tables
+
+The constructors related to tables in the `Block` data type:
+
+    data Block
+        = ...
+        | Table [Inline] [Alignment] [Double] [TableCell] [[TableCell]]  -- ^ Table,
+                                -- with caption, column alignments (required),
+                                -- relative column widths (0 = default),
+                                -- column headers (each a list of blocks), and
+                                -- rows (each a list of lists of blocks)
+        | ...
+
+#### Math formulas
+
+The constructor related to math formulas in the `Inline` data type:
+
+    data Inline
+        = ...
+        | Math MathType String  -- ^ TeX math (literal)
+        | ...
+
+#### Citations
+
+The constructor related to citations in the `Inline` data type:
+
+    data Inline
+        = ...
+        | Cite [Citation]  [Inline] -- ^ Citation (list of inlines)
+        | ...
+
 ## Custom classes
 
 Given the following types:
@@ -4143,7 +4026,7 @@ Given the following types:
                    | MetaInlines [Inline]
                    | MetaBlocks [Block]
 
-We would like to have a polymorph `setMeta`:
+We would like to have a polymorphic `setMeta`:
 
     setMeta "title" (text "The title") meta   --  :: String -> Inlines -> Meta -> Meta
     setMeta "title" (text "The title") doc    --  :: String -> Inlines -> Pandoc -> Pandoc
@@ -4192,7 +4075,7 @@ What should be `HasMeta`? The idiomatic solution would be
 
 The actual solution does the same thing with a bit more work. <link>
 
-To specialize the too polymorph `setMeta` some wrappers are defined with
+To specialize the too polymorphic `setMeta` some wrappers are defined with
 restricted types:
 
     setTitle :: Inlines -> Pandoc -> Pandoc
@@ -4304,195 +4187,85 @@ JSON conversion API:
 
     (.:) :: FromJSON a => Object -> Text -> Parser a   -- imported from Data.Aeson
 
-## Running tests
 
-    -- pandoc-types/test/test-pandoc-types.hs
+## Logging framework
 
-    ...
+The `PandocError` data type describes fatal errors which may happen during the execution of `pandoc`:
 
-    prop_roundtrip :: Pandoc -> Bool
-    prop_roundtrip doc = case decode $ encode doc :: (Maybe Pandoc) of
-      Just doc' -> doc == doc'
-      _ -> False
+    data PandocError = PandocIOError String IOError
+                     | PandocHttpError String HttpException
+                     | PandocShouldNeverHappenError String
+                     | PandocSomeError String
+                     | PandocParseError String
+                     | ...
 
-    ...
+`handleError` handles the possible fatal error, usually by exiting with a message and an exit
+code in case of errors:
 
-    tests :: [Test]
-    tests =
-      [ ...
-      , testGroup "JSON"
-        [ testGroup "encoding/decoding properties"
-          [ testProperty "round-trip" prop_roundtrip
-          ]
-        , ...
-        ]
-      ]
+    handleError :: Either PandocError a -> IO a
 
-    main :: IO ()
-    main = defaultMain tests
+The `LogMessage` data type describes errors, warnings and infos produced during the execution
+of `pandoc`:
 
-How to run the tests:
+    data LogMessage = SkippedContent String SourcePos
+                    | CouldNotParseYamlMetadata String SourcePos
+                    | DuplicateLinkReference String SourcePos
+                    | DuplicateNoteReference String SourcePos
+                    | NoteDefinedButNotUsed String SourcePos
+                    | ...
+                    | NoTitleElement String
+                    | NoLangSpecified
+                    | ...
 
-``` {.bash}
-pandoc-types$ cabal install --enable-tests
-...
-/pandoc-types$ cabal test
-Preprocessing library for pandoc-types-1.17.3..
-Building library for pandoc-types-1.17.3..
-Preprocessing test suite 'test-pandoc-types' for pandoc-types-1.17.3..
-Building test suite 'test-pandoc-types' for pandoc-types-1.17.3..
-Running 1 test suites...
-Test suite test-pandoc-types: RUNNING...
-Test suite test-pandoc-types: PASS
-Test suite logged to: dist/test/pandoc-types-1.17.3-test-pandoc-types.log
-1 of 1 test suites (1 of 1 test cases) passed.
-$
-```
+Each `LogMessage` has a verbosity level:
+
+    data Verbosity = ERROR | WARNING | INFO
 
 <!-- -->
-<!-- -->
-<!-- -->
-    choose :: Random a => (a,a) -> Gen a
+    messageVerbosity :: LogMessage -> Verbosity
 
-    suchThat :: Gen a -> (a -> Bool) -> Gen a
-
-    -- | Generates one of the given values. The input list must be non-empty.
-    elements :: [a] -> Gen a
-    elements [] = error "QuickCheck.elements used with empty list"
-    elements xs = (xs !!) `fmap` choose (0, length xs - 1)
-
-    -- | Chooses one of the given generators, with a weighted random distribution.
-    -- The input list must be non-empty.
-    frequency :: [(Int, Gen a)] -> Gen a
-    frequency [] = error "QuickCheck.frequency used with empty list"
-    frequency xs0 = choose (1, tot) >>= (`pick` xs0)
-     where
-      tot = sum (map fst xs0)
-
-      pick n ((k,x):xs)
-        | n <= k    = x
-        | otherwise = pick (n-k) xs
-      pick _ _  = error "QuickCheck.pick used with empty list"
-
-
-    -- | Generates a list of random length. The maximum length depends on the
-    -- size parameter.
-    listOf :: Gen a -> Gen [a]
-    listOf gen = sized $ \n ->
-      do k <- choose (0,n)
-         vectorOf k gen
-
-    -- | Generates a non-empty list of random length. The maximum length
-    -- depends on the size parameter.
-    listOf1 :: Gen a -> Gen [a]
-    listOf1 gen = sized $ \n ->
-      do k <- choose (1,1 `max` n)
-         vectorOf k gen
-
-## Logging
-
-### `PandocError`
-
-### `LogMessage`
-
-### `Verbosity`
 
 ## Actions
 
-### `CommonState` data type
+The `PandocMonad` type class contains all the potentially
+IO-related functions used in pandoc's readers and writers.
+There are two instances of `PandocMonad`:
 
-### `PandocMonad` type class
+-   `PandocIO`, which implements `PandocMonad`'s functions in `IO`
+-   `PandocPure`, which implements `PandocMonad`'s functions in an internal state that
+    represents a file system, time, etc.  
+    `PandocPure` is used to run test cases.
 
-#### MediaBag
+Main data structured used by `PandocMonad`'s functions:
 
-#### MimeType
-
-### `PandocIO`
-
-### `PandocPure`
+-   The `CommonState` data type represents state that is used by all modes.
+-   The `MediaBag` data type holds binary resources, and an interface for interacting with it.
+-   `MimeType` is a synonym for `String`; the related functions detect the input and output
+    format of document if it is not give explicitly by the user.
 
 ## Readers
 
+Readers are described with the `Parsec` parser combinator library.
+There are common combinators defined in the `Text.Pandoc.Parsing` module which are
+useful in several input formats.
+
+The `ParserState` data type contain all information necessary during parsing for any
+input format.
+`ParserState` contains the command line options related to readers, described by the `ReaderOptions` data type.
+`ReaderOptions` refer to the `Extensions` data type, which describes the turned on extensions
+in a compact way.
+
+The common interface of readers for the input formats is described by the `Reader` data type.
+The available readers are enumerated in the `readers` list.
+
 ## Writers
 
-## Command line interface
+Writers which produce indented output use the `Doc` data type, which supports formatted
+text output for a given screen width.
 
-![Main data flow](App.pdf)
-
-## Additional features
-
-### Language support
-
-### Filters
-
-### Lists
-
-    data Block
-        = ...
-        | OrderedList ListAttributes [[Block]] -- ^ Ordered list (attributes
-                                -- and a list of items, each a list of blocks)
-        | BulletList [[Block]]  -- ^ Bullet list (list of items, each
-                                -- a list of blocks)
-        | DefinitionList [([Inline],[[Block]])]  -- ^ Definition list
-                                -- Each list item is a pair consisting of a
-                                -- term (a list of inlines) and one or more
-                                -- definitions (each a list of blocks)
-        | ...
+The common interface of writers for the output formats is described by the `Writer` data type.
+The available writers are enumerated in the `writers` list.
+Writers have a `WriterOptions` argument which describes the command line arguments related to writers.
 
 
-    -- | List attributes.
-    type ListAttributes = (Int, ListNumberStyle, ListNumberDelim)
 
-    -- | Style of list numbers.
-    data ListNumberStyle = DefaultStyle
-                         | Example
-                         | Decimal
-                         | LowerRoman
-                         | UpperRoman
-                         | LowerAlpha
-                         | UpperAlpha deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
-
-    -- | Delimiter of list numbers.
-    data ListNumberDelim = DefaultDelim
-                         | Period
-                         | OneParen
-                         | TwoParens deriving (Eq, Ord, Show, Read, Typeable, Data, Generic)
-
-### Tables
-
-    data Block
-        = ...
-        | Table [Inline] [Alignment] [Double] [TableCell] [[TableCell]]  -- ^ Table,
-                                -- with caption, column alignments (required),
-                                -- relative column widths (0 = default),
-                                -- column headers (each a list of blocks), and
-                                -- rows (each a list of lists of blocks)
-        | ...
-
-### Math support
-
-    data Inline
-        = ...
-        | Math MathType String  -- ^ TeX math (literal)
-        | ...
-
-### Citations
-
-    data Inline
-        = ...
-        | Cite [Citation]  [Inline] -- ^ Citation (list of inlines)
-        | ...
-
-### Support for slide shows
-
-## Developer tools
-
-### Test suit
-
-### Benchmarks
-
-### Packaging
-
-### Documentation
-
-### Version control
