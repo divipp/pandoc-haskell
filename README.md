@@ -19,7 +19,3 @@ The pdf generated from the last tagged version of the tutorial can be found [her
 
 Pull requests are welcome.
 
-Please run `make normalize` before committing changes.
-
-
-
